@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Access | Hunter Portal</title>
+    <link rel="stylesheet" href="css/login.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Teko:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="cyber-grid"></div>
+    <div class="overlay"></div>
+
+    <div class="login-container">
+        <div class="corner top-left"></div>
+        <div class="corner top-right"></div>
+        <div class="corner bottom-left"></div>
+        <div class="corner bottom-right"></div>
+
+        <div class="login-header">
+            <img src="assets/images/logo.png" alt="System Logo" class="system-logo" style="display: none;"> <h2>SYSTEM GATEWAY</h2>
+            
+            <div class="auth-tabs">
+                <button id="tab-login" class="tab-btn active">ACCESS (LOGIN)</button>
+                <button id="tab-signup" class="tab-btn">RECRUIT (SIGN UP)</button>
+            </div>
+        </div>
+
+        <form id="login-form" class="auth-form active-form">
+            <div class="input-group">
+                <label>EMAIL IDENTITY</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="login-email" placeholder="hunter@system.com" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>ACCESS KEY (PASSWORD)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn">
+                <span class="btn-text">INITIALIZE LINK</span>
+                <span class="btn-glitch"></span>
+            </button>
+        </form>
+
+        <form id="signup-form" class="auth-form hidden-form">
+            <div class="input-group">
+                <label>CODENAME (USERNAME)</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="signup-name" placeholder="Jin-Woo" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>EMAIL IDENTITY</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="signup-email" placeholder="hunter@system.com" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>CREATE KEY</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-key"></i>
+                    <input type="password" id="signup-password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn">
+                <span class="btn-text">REGISTER AS HUNTER</span>
+                <span class="btn-glitch"></span>
+            </button>
+        </form>
+
+        <div class="divider">
+            <span class="line"></span>
+            <span class="text">OR</span>
+            <span class="line"></span>
+        </div>
+
+        <button type="button" class="google-btn" id="google-login">
+            <i class="fab fa-google"></i>
+            <span>CONTINUE WITH GOOGLE</span>
+            <div class="btn-overlay"></div>
+        </button>
+
+        <div class="scan-line"></div>
+    </div>
+
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+        <p class="blink">PROCESSING REQUEST...</p>
+    </div>
+
+    <script type="module" src="js/login.js"></script>
+</body>
+</html>

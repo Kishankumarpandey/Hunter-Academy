@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Selection | System Awakening</title>
+    
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/role-select.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="cyber-grid"></div>
+    <div class="overlay"></div>
+
+    <div class="selection-container">
+        
+        <div class="system-header">
+            <p class="blink" id="branch-detected-msg">> SYSTEM SCANNING USER DATA...</p>
+            
+            <h1>CHOOSE YOUR CLASS</h1>
+            <p class="sub-text">Based on your Origin (Branch), specific career paths have been unlocked.</p>
+        </div>
+
+        <div class="cards-grid" id="roles-container">
+            <div style="color: var(--neon-blue); font-family: 'Orbitron'; font-size: 1.2rem; margin-top: 50px; text-shadow: 0 0 10px var(--neon-blue);">
+                <i class="fas fa-circle-notch fa-spin"></i> ACCESSING GUILD DATABASE...
+            </div>
+        </div>
+
+        <div class="action-area">
+            <button id="awaken-btn" class="awaken-btn disabled" disabled onclick="confirmSelection()">
+                AWAITING SELECTION
+            </button>
+        </div>
+
+    </div>
+
+    <script type="module" src="js/role-select.js"></script>
+    
+</body>
+</html>

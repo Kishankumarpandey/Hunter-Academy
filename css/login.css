@@ -1,0 +1,311 @@
+:root {
+    --neon-blue: #00eaff;
+    --neon-red: #ff2a2a;
+    --dark-bg: #050505;
+    --glass-bg: rgba(10, 20, 30, 0.85);
+    --border-color: rgba(0, 234, 255, 0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background-color: var(--dark-bg);
+    color: white;
+    font-family: 'Share Tech Mono', monospace;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* --- ANIMATED CYBER BACKGROUND --- */
+.cyber-grid {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background-image: 
+        linear-gradient(rgba(0, 234, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 234, 255, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+    transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+    animation: grid-move 20s linear infinite;
+    z-index: -2;
+}
+
+.overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, transparent 0%, #000 90%);
+    z-index: -1;
+}
+
+@keyframes grid-move {
+    0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+    100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); }
+}
+
+/* --- LOGIN BOX (THE SYSTEM WINDOW) --- */
+.login-container {
+    width: 400px;
+    padding: 40px;
+    background: var(--glass-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 20px rgba(0, 234, 255, 0.1);
+    position: relative;
+    backdrop-filter: blur(10px);
+    animation: fade-in 0.8s ease-out;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* HUD Corners */
+.corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--neon-blue);
+    transition: 0.3s;
+}
+.top-left { top: -2px; left: -2px; border-bottom: none; border-right: none; }
+.top-right { top: -2px; right: -2px; border-bottom: none; border-left: none; }
+.bottom-left { bottom: -2px; left: -2px; border-top: none; border-right: none; }
+.bottom-right { bottom: -2px; right: -2px; border-top: none; border-left: none; }
+
+.login-container:hover .corner { width: 30px; height: 30px; box-shadow: 0 0 10px var(--neon-blue); }
+
+/* Header */
+.login-header { text-align: center; margin-bottom: 30px; }
+.system-logo { height: 50px; margin-bottom: 10px; }
+.login-header h2 { font-family: 'Teko', sans-serif; font-size: 2.5rem; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-blue); }
+.status-text { color: #888; font-size: 0.9rem; }
+
+/* Inputs */
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; font-size: 0.8rem; color: var(--neon-blue); margin-bottom: 5px; }
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(0,0,0,0.5);
+    border-bottom: 2px solid #333;
+}
+
+.input-wrapper i { padding: 10px; color: #555; }
+
+.input-wrapper input {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-family: inherit;
+    outline: none;
+}
+
+.focus-border {
+    position: absolute;
+    bottom: -2px; left: 0; width: 0; height: 2px;
+    background: var(--neon-blue);
+    transition: 0.3s;
+}
+
+.input-wrapper input:focus ~ .focus-border { width: 100%; box-shadow: 0 0 10px var(--neon-blue); }
+.input-wrapper input:focus { color: var(--neon-blue); }
+
+/* Footer */
+.form-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 30px; }
+.forgot-pass { color: #888; text-decoration: none; transition: 0.3s; }
+.forgot-pass:hover { color: var(--neon-blue); }
+
+/* Login Button (Gaming Style) */
+.login-btn {
+    width: 100%;
+    padding: 15px;
+    background: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    font-family: 'Teko', sans-serif;
+    font-size: 1.5rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.login-btn:hover {
+    background: var(--neon-blue);
+    color: black;
+    box-shadow: 0 0 20px var(--neon-blue);
+    letter-spacing: 2px;
+}
+
+/* Register Link */
+.register-link { text-align: center; margin-top: 20px; font-size: 0.9rem; }
+.register-link a { color: var(--neon-blue); text-decoration: none; font-weight: bold; }
+
+/* Scan Line Animation */
+.scan-line {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 2px;
+    background: rgba(0, 234, 255, 0.5);
+    box-shadow: 0 0 10px var(--neon-blue);
+    animation: scan 3s linear infinite;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+@keyframes scan {
+    0% { top: 0; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+/* Loader */
+.hidden { display: none !important; }
+.loader-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.spinner {
+    width: 50px; height: 50px;
+    border: 3px solid transparent;
+    border-top: 3px solid var(--neon-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.blink { animation: blink 1s infinite; color: var(--neon-blue); font-family: 'Teko'; font-size: 1.5rem; }
+@keyframes blink { 50% { opacity: 0.5; } }
+
+/* --- GOOGLE LOGIN (System Integration Style) --- */
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    color: rgba(255,255,255,0.4);
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+.divider .line {
+    flex-grow: 1;
+    height: 1px;
+    background: rgba(0, 242, 255, 0.2);
+}
+
+.divider .text {
+    padding: 0 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: bold;
+}
+
+.google-btn {
+    width: 100%;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05); /* Transparent Dark */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    position: relative;
+    overflow: hidden;
+    transition: 0.3s;
+    /* Angled Corners like the Login Button */
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.google-btn i {
+    font-size: 1.2rem;
+    color: #ea4335; /* Google Red Brand Color */
+    transition: 0.3s;
+}
+
+/* Hover Effect: Turn White with Red Glow */
+.google-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #fff;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.google-btn:hover i {
+    transform: scale(1.1);
+    text-shadow: 0 0 10px #ea4335;
+}
+
+/* Click Animation Effect */
+.google-btn:active {
+    transform: scale(0.98);
+}
+
+
+
+/* --- NEW TABS STYLING --- */
+.auth-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: #555;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: 0.3s;
+    letter-spacing: 1px;
+}
+
+.tab-btn:hover {
+    color: white;
+}
+
+.tab-btn.active {
+    color: var(--neon-blue, #00f2ff);
+    border-bottom: 2px solid var(--neon-blue, #00f2ff);
+    text-shadow: 0 0 10px var(--neon-blue, #00f2ff);
+}
+
+/* Form Visibility Logic */
+.auth-form {
+    transition: opacity 0.3s ease;
+}
+
+.hidden-form {
+    display: none;
+}
+
+.active-form {
+    display: block;
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,368 @@
+{
+  "levels": [
+    {
+      "level_id": 1,
+      "skill_name": "C Programming Fundamentals",
+      "description": "Master the syntax, pointers, and memory management essential for firmware.",
+      "youtube_keyword": "C Programming for Embedded Systems full course",
+      "questions": {
+        "easy": [
+          {
+            "id": 1,
+            "text": "What is the size of a 'char' variable in C?",
+            "options": ["1 byte", "2 bytes", "4 bytes", "Depends on compiler"],
+            "correct": 0
+          },
+          {
+            "id": 2,
+            "text": "Which operator is used to access the address of a variable?",
+            "options": ["*", "&", "->", "."],
+            "correct": 1
+          },
+          {
+            "id": 3,
+            "text": "Which loop is guaranteed to execute at least once?",
+            "options": ["for", "while", "do-while", "foreach"],
+            "correct": 2
+          },
+          {
+            "id": 4,
+            "text": "What is the result of 5 % 2?",
+            "options": ["2.5", "2", "1", "0"],
+            "correct": 2
+          },
+          {
+            "id": 5,
+            "text": "Which keyword makes a variable visible only within its file?",
+            "options": ["extern", "volatile", "static", "const"],
+            "correct": 2
+          },
+          {
+            "id": 6,
+            "text": "What does 'void' return type mean?",
+            "options": ["Returns 0", "Returns null pointer", "Returns nothing", "Returns error"],
+            "correct": 2
+          },
+          {
+            "id": 7,
+            "text": "Array indexes in C start at:",
+            "options": ["1", "0", "-1", "undefined"],
+            "correct": 1
+          }
+        ],
+        "interview": [
+          {
+            "id": 101,
+            "text": "Explain the use of 'volatile' keyword. When would you use it in embedded C?",
+            "type": "theory"
+          },
+          {
+            "id": 102,
+            "text": "What is the difference between 'const char *p' and 'char * const p'?",
+            "type": "theory"
+          },
+          {
+            "id": 103,
+            "text": "How do you set, clear, and toggle a specific bit in a register?",
+            "type": "coding"
+          },
+          {
+            "id": 104,
+            "text": "What is a segmentation fault? Give an example of code that causes it.",
+            "type": "theory"
+          },
+          {
+            "id": 105,
+            "text": "Explain structure padding and packing. Why does it matter?",
+            "type": "theory"
+          }
+        ],
+        "hard": [
+          {
+            "id": 201,
+            "text": "Analyze the following code snippet: `void (*fn_ptr)(void) = (void (*)(void))0x1000; fn_ptr();`. What does this do at the hardware level, and what are the risks?",
+            "type": "deep_dive"
+          },
+          {
+            "id": 202,
+            "text": "Design a memory pool allocator (malloc replacement) for a system with only 2KB RAM. How do you handle fragmentation without an MMU?",
+            "type": "scenario"
+          }
+        ]
+      }
+    },
+    {
+      "level_id": 2,
+      "skill_name": "Microcontrollers (AVR/ARM)",
+      "description": "Control the hardware. Understand GPIOs, Interrupts, and Peripherals.",
+      "youtube_keyword": "Microcontroller architecture basics ARM AVR",
+      "questions": {
+        "easy": [
+          {
+            "id": 1,
+            "text": "What does GPIO stand for?",
+            "options": ["General Purpose Input Output", "Global Peripheral Input Output", "General Protocol Internal Output", "Graphic Processing Input Output"],
+            "correct": 0
+          },
+          {
+            "id": 2,
+            "text": "Which component generates the clock signal for the MCU?",
+            "options": ["ADC", "Crystal Oscillator", "DMA", "UART"],
+            "correct": 1
+          },
+          {
+            "id": 3,
+            "text": "What happens when an Interrupt occurs?",
+            "options": ["CPU stops forever", "CPU resets", "CPU pauses main code and runs ISR", "CPU ignores it"],
+            "correct": 2
+          },
+          {
+            "id": 4,
+            "text": "Which protocol uses only 2 wires (SDA, SCL)?",
+            "options": ["SPI", "UART", "I2C", "CAN"],
+            "correct": 2
+          },
+          {
+            "id": 5,
+            "text": "What is the resolution of a 10-bit ADC?",
+            "options": ["256", "512", "1024", "4096"],
+            "correct": 2
+          },
+          {
+            "id": 6,
+            "text": "Why do we use pull-up resistors on buttons?",
+            "options": ["To increase current", "To prevent floating states", "To decrease voltage", "To speed up processing"],
+            "correct": 1
+          },
+          {
+            "id": 7,
+            "text": "What is a Watchdog Timer used for?",
+            "options": ["Keeping time", "Resetting the system if it hangs", "Measuring pulse width", "Generating interrupts"],
+            "correct": 1
+          }
+        ],
+        "interview": [
+          {
+            "id": 101,
+            "text": "Explain Interrupt Latency. What factors affect it?",
+            "type": "theory"
+          },
+          {
+            "id": 102,
+            "text": "What is the difference between Polling and Interrupts? When to use which?",
+            "type": "theory"
+          },
+          {
+            "id": 103,
+            "text": "How does DMA (Direct Memory Access) improve system performance?",
+            "type": "theory"
+          },
+          {
+            "id": 104,
+            "text": "Explain the concept of 'Switch Debouncing' and how to solve it in software.",
+            "type": "coding"
+          },
+          {
+            "id": 105,
+            "text": "What is the difference between Harvard and Von Neumann architecture?",
+            "type": "theory"
+          }
+        ],
+        "hard": [
+          {
+            "id": 201,
+            "text": "You are designing a low-power sensor node that runs on a coin cell for 5 years. Describe your strategy for clock management, sleep modes, and interrupt handling.",
+            "type": "scenario"
+          },
+          {
+            "id": 202,
+            "text": "A high-priority interrupt is triggering frequently, starving the main loop. However, you cannot miss any interrupts. How do you re-architect the firmware to solve this (e.g., Circular Buffers, Bottom Halves)?",
+            "type": "deep_dive"
+          }
+        ]
+      }
+    },
+    {
+      "level_id": 3,
+      "skill_name": "Embedded Linux",
+      "description": "Dive into the OS. Bootloaders, Kernel, and Device Drivers.",
+      "youtube_keyword": "Embedded Linux Boot Process and Device Drivers",
+      "questions": {
+        "easy": [
+          {
+            "id": 1,
+            "text": "What is the first program that runs when power is applied?",
+            "options": ["Kernel", "Init", "Bootloader", "Shell"],
+            "correct": 2
+          },
+          {
+            "id": 2,
+            "text": "Which command lists running processes?",
+            "options": ["ls", "ps", "cd", "run"],
+            "correct": 1
+          },
+          {
+            "id": 3,
+            "text": "Where are device files located in Linux?",
+            "options": ["/bin", "/etc", "/dev", "/home"],
+            "correct": 2
+          },
+          {
+            "id": 4,
+            "text": "What is the core of the Linux OS called?",
+            "options": ["Shell", "Terminal", "Kernel", "GUI"],
+            "correct": 2
+          },
+          {
+            "id": 5,
+            "text": "Which file system is commonly used for Flash memory?",
+            "options": ["NTFS", "JFFS2 / UBIFS", "FAT32", "HFS"],
+            "correct": 1
+          },
+          {
+            "id": 6,
+            "text": "What does 'insmod' do?",
+            "options": ["Installs a module", "Removes a module", "Lists modules", "Compiles modules"],
+            "correct": 0
+          },
+          {
+            "id": 7,
+            "text": "User space applications communicate with Kernel space via...",
+            "options": ["Direct memory access", "System Calls", "Global variables", "Pointers"],
+            "correct": 1
+          }
+        ],
+        "interview": [
+          {
+            "id": 101,
+            "text": "Explain the Linux Boot Process from Power On to Shell.",
+            "type": "theory"
+          },
+          {
+            "id": 102,
+            "text": "What is a Device Tree (DTS)? Why do we need it in Embedded Linux?",
+            "type": "theory"
+          },
+          {
+            "id": 103,
+            "text": "Differentiate between a Character Driver and a Block Driver.",
+            "type": "theory"
+          },
+          {
+            "id": 104,
+            "text": "How do you debug a Kernel Panic? What tools would you use?",
+            "type": "theory"
+          },
+          {
+            "id": 105,
+            "text": "What is the difference between User Space and Kernel Space?",
+            "type": "theory"
+          }
+        ],
+        "hard": [
+          {
+            "id": 201,
+            "text": "You need to reduce the boot time of an embedded Linux device from 15 seconds to 2 seconds. Walk through the optimization steps (Kernel stripping, Init systems, U-Boot).",
+            "type": "scenario"
+          },
+          {
+            "id": 202,
+            "text": "Write the logic for a 'ioctl' command in a custom character driver that needs to safely copy a structure from user space to kernel space without crashing the kernel.",
+            "type": "coding"
+          }
+        ]
+      }
+    },
+    {
+      "level_id": 4,
+      "skill_name": "Real-Time OS (RTOS)",
+      "description": "Master concurrency. Scheduling, Mutexes, and Determinism.",
+      "youtube_keyword": "RTOS concepts FreeRTOS tutorial",
+      "questions": {
+        "easy": [
+          {
+            "id": 1,
+            "text": "What defines a 'Real-Time' system?",
+            "options": ["It is very fast", "It processes data in a deterministic time", "It has a GUI", "It uses WiFi"],
+            "correct": 1
+          },
+          {
+            "id": 2,
+            "text": "What is a Semaphore used for?",
+            "options": ["Allocating memory", "Synchronization and signaling", "Defining variables", "Connecting to internet"],
+            "correct": 1
+          },
+          {
+            "id": 3,
+            "text": "What occurs when the scheduler switches from one task to another?",
+            "options": ["Context Switch", "System Reset", "Interrupt", "Deadlock"],
+            "correct": 0
+          },
+          {
+            "id": 4,
+            "text": "Which scheduling algorithm gives CPU to the highest priority task?",
+            "options": ["Round Robin", "Preemptive Priority", "FIFO", "Shortest Job First"],
+            "correct": 1
+          },
+          {
+            "id": 5,
+            "text": "What is a Deadlock?",
+            "options": ["When a task finishes", "When two tasks wait for each other indefinitely", "When the CPU overheats", "When memory is full"],
+            "correct": 1
+          },
+          {
+            "id": 6,
+            "text": "Shared resources should be protected by...",
+            "options": ["Global variables", "Mutex", "Arrays", "Pointers"],
+            "correct": 1
+          },
+          {
+            "id": 7,
+            "text": "What is the idle task?",
+            "options": ["A virus", "A task that runs when no other task is ready", "A high priority task", "The bootloader"],
+            "correct": 1
+          }
+        ],
+        "interview": [
+          {
+            "id": 101,
+            "text": "Explain Priority Inversion. How does Priority Inheritance solve it?",
+            "type": "theory"
+          },
+          {
+            "id": 102,
+            "text": "What is the difference between a Mutex and a Binary Semaphore?",
+            "type": "theory"
+          },
+          {
+            "id": 103,
+            "text": "Explain the concept of Reentrancy. Which functions are not reentrant?",
+            "type": "theory"
+          },
+          {
+            "id": 104,
+            "text": "How do you calculate stack size for a task? What happens during a stack overflow?",
+            "type": "theory"
+          },
+          {
+            "id": 105,
+            "text": "Hard Real-Time vs Soft Real-Time systems. Give examples.",
+            "type": "theory"
+          }
+        ],
+        "hard": [
+          {
+            "id": 201,
+            "text": "Design a lock-free circular buffer for passing data between a high-frequency ADC Interrupt (100kHz) and a lower priority processing Task. Why can't you use a Mutex here?",
+            "type": "deep_dive"
+          },
+          {
+            "id": 202,
+            "text": "Calculate the CPU utilization for a set of 3 periodic tasks using Rate Monotonic Scheduling (RMS). Task A: 5ms every 20ms, Task B: 10ms every 50ms, Task C: 20ms every 100ms. Is it schedulable?",
+            "type": "scenario"
+          }
+        ]
+      }
+    }
+  ]
+}
