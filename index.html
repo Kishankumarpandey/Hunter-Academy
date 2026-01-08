@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solo Leveling: Student Awakening</title>
+    <link rel="stylesheet" href="css/landing.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 40px; }
+        .feature-item { background: rgba(0,0,0,0.6); border: 1px solid #333; padding: 20px; text-align: center; border-radius: 10px; }
+        .feature-item i { font-size: 2rem; color: var(--neon-blue); margin-bottom: 15px; }
+        
+        .process-steps { display: flex; justify-content: space-around; flex-wrap: wrap; margin-top: 40px; position: relative; }
+        .step { text-align: center; width: 200px; position: relative; z-index: 2; }
+        .step-icon { width: 60px; height: 60px; background: var(--neon-blue); color: black; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold; font-size: 1.5rem; }
+        
+        .rank-bar-container { width: 80%; height: 10px; background: #333; margin: 30px auto; border-radius: 5px; position: relative; }
+        .rank-progress { width: 20%; height: 100%; background: linear-gradient(90deg, var(--neon-blue), transparent); box-shadow: 0 0 10px var(--neon-blue); }
+        .rank-labels { display: flex; justify-content: space-between; width: 80%; margin: 10px auto; color: #888; font-family: 'Teko'; font-size: 1.5rem; }
+        .rank-labels span.active { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+
+        .ai-terminal { background: #0a0a0a; border: 1px dashed var(--neon-blue); padding: 30px; max-width: 800px; margin: 50px auto; font-family: 'Courier New', monospace; text-align: left; position: relative; }
+        .ai-terminal::before { content: "SYSTEM MESSAGE"; position: absolute; top: -12px; left: 20px; background: #000; padding: 0 10px; color: var(--neon-blue); font-size: 0.8rem; }
+        .ai-typing { color: #0f0; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <img src="assets/images/logo.png" alt="Logo" style="height: 40px; vertical-align: middle;"> 
+            HUNTER <span class="blue-text">ACADEMY</span>
+        </div>
+        <div class="nav-links">
+            <a href="login.html">SYSTEM</a>
+            <a href="login.html">CAREERS</a>
+            <a href="login.html" class="cta-btn">ENTER GATE</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-video-container">
+            <video autoplay muted loop class="hero-video" id="main-hero-video">
+                <source src="assets/videos/hero-1.mp4" type="video/mp4">
+            </video>
+        </div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">LEVEL UP YOUR <span class="outline">CAREER</span></h1>
+            
+            <div style="background: rgba(0,0,0,0.7); padding: 15px; border-left: 3px solid var(--neon-blue); display: inline-block; margin: 20px 0;">
+                <p class="hero-sub" style="margin:0; font-size: 1rem;">
+                    🎮 <strong>This is not just a game.</strong> This is your skill journey.<br>
+                    <span style="color:#ccc; font-size: 0.9rem;">
+                    📘 Learn Real Skills &nbsp;|&nbsp; 🧠 Pass Exams &nbsp;|&nbsp; 🏆 Get Hired
+                    </span>
+                </p>
+            </div>
+
+            <div class="hero-buttons" style="margin-top: 20px;">
+                <button class="watch-trailer" onclick="location.href='login.html'">🚀 START FIRST QUEST</button>
+                
+            </div>
+        </div>
+
+        <div class="hero-footer">
+            <div class="current-rank">CURRENT RANK: <span class="blue-text">E (NOOB)</span></div>
+        </div>
+    </section>
+
+    <section class="about" id="how-it-works" style="min-height: auto; padding-bottom: 50px;">
+        <div class="auto-blur">
+            <p class="section-label">SYSTEM INSTRUCTIONS</p>
+            <h2 class="gradient-text">HOW TO PLAY</h2>
+        </div>
+
+        <div class="process-steps auto-show">
+            <div class="step">
+                <div class="step-icon">1</div>
+                <h3>CHOOSE ROLE</h3>
+                <p style="color:#aaa; font-size: 0.9rem;">Select your career path (Dev, Design, Data).</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">2</div>
+                <h3>COMPLETE QUESTS</h3>
+                <p style="color:#aaa; font-size: 0.9rem;">Learn topics and finish coding assignments.</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">3</div>
+                <h3>DEFEAT BOSSES</h3>
+                <p style="color:#aaa; font-size: 0.9rem;">Pass difficult exams and mock interviews.</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">4</div>
+                <h3>RANK UP</h3>
+                <p style="color:#aaa; font-size: 0.9rem;">Upgrade your rank from E to S-Class.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="info" id="roadmap" style="background: #080808;">
+        <div class="info-header auto-blur">
+            <h3>WHAT YOU ACTUALLY LEARN</h3>
+            <p>Every level maps to real industry skills required for jobs.</p>
+        </div>
+
+        <div class="bento-grid">
+            <div class="card auto-show" style="text-align: center; padding: 20px; display:flex; flex-direction:column; justify-content:center;">
+                <i class="fab fa-python" style="font-size: 4rem; color: #ffe811;"></i>
+                <h3 style="margin-top:20px;">PYTHON & DSA</h3>
+                <p>Logic Building</p>
+            </div>
+            <div class="card auto-show" style="text-align: center; padding: 20px; display:flex; flex-direction:column; justify-content:center;">
+                <i class="fab fa-html5" style="font-size: 4rem; color: #e34c26;"></i>
+                <h3 style="margin-top:20px;">WEB DEV</h3>
+                <p>Frontend Architecture</p>
+            </div>
+            <div class="card auto-show" style="text-align: center; padding: 20px; display:flex; flex-direction:column; justify-content:center;">
+                <i class="fas fa-database" style="font-size: 4rem; color: #00eaff;"></i>
+                <h3 style="margin-top:20px;">DATABASES</h3>
+                <p>SQL & Backend</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="about" style="min-height: auto;">
+        
+        <div class="auto-blur" style="width: 100%;">
+            <p class="section-label">PROGRESSION</p>
+            <h2 class="gradient-text">THE RANKING SYSTEM</h2>
+            <p style="color:#ccc;">Your rank increases with skill mastery, not time spent.</p>
+            
+            <div class="rank-labels">
+                <span class="active">E</span>
+                <span>D</span>
+                <span>C</span>
+                <span>B</span>
+                <span>A</span>
+                <span style="color: gold;">S</span>
+            </div>
+            <div class="rank-bar-container">
+                <div class="rank-progress"></div>
+            </div>
+        </div>
+
+        <div class="ai-terminal auto-show">
+            <p><i class="fas fa-robot"></i> <strong>SYSTEM AI ASSISTANT:</strong></p>
+            <br>
+            <p class="ai-typing">> Analyzing Student Weakness...</p>
+            <p>> Weakness Found: "Data Structures - Linked Lists"</p>
+            <p>> Generating personalized quest to improve logic...</p>
+            <br>
+            <p style="color: #888;">// The AI guides you when you are stuck. It creates custom interview questions based on your learning history.</p>
+        </div>
+
+    </section>
+
+    <section class="info" id="classes">
+        <div class="info-header auto-blur">
+            <h3>SELECT YOUR CLASS</h3>
+        </div>
+        <div class="bento-grid">
+            <div class="card card-large auto-show">
+                <div class="card-content">
+                    <h3>CODE MANCER</h3>
+                    <p><strong>Class:</strong> Full Stack Developer</p>
+                    <button>ENTER PATH</button>
+                </div>
+                <video autoplay muted loop src="assets/videos/feature-1.mp4" poster="assets/images/gallery-1.webp"></video>
+            </div>
+            <div class="card card-tall auto-show">
+                <div class="card-content">
+                    <h3>UI ARCHITECT</h3>
+                    <p><strong>Class:</strong> UX/UI Designer</p>
+                </div>
+                <img src="assets/images/gallery-2.webp" alt="UI Design" style="opacity: 0.6">
+            </div>
+             <div class="card auto-show">
+                <div class="card-content">
+                    <h3>DATA ALCHEMIST</h3>
+                    <p><strong>Class:</strong> Data Scientist</p>
+                </div>
+                <img src="assets/images/gallery-4.webp" alt="Data Science" style="opacity: 0.5">
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 HUNTER SYSTEM CORP | <span style="color:#666">Built for Education</span></p>
+    </footer>
+
+    <script src="js/landing.js"></script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Configuration | Hunter Setup</title>
+    
+    <link rel="stylesheet" href="css/login.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CUSTOM STYLES (Aapke Purane Code Se) --- */
+        select {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            transition: 0.3s;
+        }
+
+        select:hover, select:focus {
+            background: rgba(0, 242, 255, 0.1);
+            border-color: var(--neon-blue); /* Updated variable */
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+        }
+
+        /* Dropdown Options Styling (Chrome/Edge) */
+        option {
+            background-color: #020617;
+            color: white;
+        }
+
+        .select-wrapper {
+            position: relative;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+        
+        /* Custom Arrow */
+        .select-wrapper::after {
+            content: '▼';
+            font-size: 0.8rem;
+            color: var(--neon-blue);
+            position: absolute;
+            right: 15px;
+            top: 45px;
+            pointer-events: none;
+        }
+
+        .select-wrapper label {
+            display: block;
+            color: var(--neon-blue);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 600;
+            font-family: 'Rajdhani';
+        }
+
+        /* ANIMATIONS */
+        .hidden-section {
+            display: none;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.5s ease;
+        }
+
+        .reveal {
+            display: block;
+            animation: slideIn 0.5s forwards;
+        }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .profile-container {
+            max-width: 500px; /* Thoda chouda kiya taaki comfortable lage */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cyber-grid"></div>
+    <div class="overlay"></div>
+
+    <div class="login-container profile-container">
+        
+        <div class="login-header">
+            <h2 style="margin-bottom: 5px;">CONFIGURATION</h2>
+            <p class="status-text">STEP 1: ORIGIN SETUP</p>
+            <div class="scan-line" style="height: 2px; width: 50px; margin: 10px auto; background: var(--neon-blue);"></div>
+        </div>
+
+        <form id="setup-form">
+            
+            <div class="select-wrapper">
+                <label><i class="fas fa-user-graduate"></i> Current Status</label>
+                <select id="student-type" required>
+                    <option value="" disabled selected>Select Status...</option>
+                    <option value="student">College Student (Hunter)</option>
+                    <option value="school">School Student (Civilian)</option>
+                    <option value="working">Working Professional (Guild Master)</option>
+                </select>
+            </div>
+
+            <div class="select-wrapper">
+                <label><i class="fas fa-certificate"></i> Degree / Standard</label>
+                <select id="degree" required>
+                    <option value="" disabled selected>Select Qualification...</option>
+                    <option value="btech">B.Tech / B.E</option>
+                    <option value="mtech">M.Tech / M.E</option>
+                    <option value="bca">BCA / MCA</option>
+                    <option value="bsc">B.Sc (CS/IT)</option>
+                    <option value="diploma">Diploma</option>
+                </select>
+            </div>
+
+            <div id="branch-section" class="select-wrapper hidden-section">
+                <label><i class="fas fa-microchip"></i> Specialization (Branch)</label>
+                <select id="branch" required>
+                    <option value="" disabled selected>Select Branch...</option>
+                    
+                    <option value="ece">Electronics & Comm. (ECE)</option>
+                    <option value="cse">Computer Science (CSE)</option>
+                    <option value="mech">Mechanical / Auto</option>
+                    <option value="civil">Civil Engineering</option>
+                </select>
+            </div>
+
+            <button type="submit" class="login-btn" style="margin-top: 10px;">
+                <span class="btn-text">CONFIRM DATA</span>
+                <span class="btn-glitch"></span>
+            </button>
+
+        </form>
+    </div>
+
+    <script type="module" src="js/profile.js"></script>
+
+</body>
+</html>
