@@ -1,0 +1,29 @@
+{
+  "name": "sololeveling_lms",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kishankumarpandey/Hunter-Academy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Kishankumarpandey/Hunter-Academy/issues"
+  },
+  "homepage": "https://github.com/Kishankumarpandey/Hunter-Academy#readme",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "groq-sdk": "^0.37.0",
+    "youtube-transcript": "^1.2.1"
+  }
+}

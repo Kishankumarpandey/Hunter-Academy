@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instance Dungeon | Interactive Mode</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <link href="css/study-game.css" rel="stylesheet">
+</head>
+<body>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <button onclick="returnToLobby()" style="background: transparent; border: 1px solid #555; color: #aaa; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron'; transition: 0.3s;">
+            <i class="fas fa-chevron-left"></i> RETREAT
+        </button>
+
+        <h1 style="font-family:'Orbitron'; font-size:2rem; text-shadow:0 0 15px var(--neon-blue); margin: 0;">
+            <i class="fas fa-vr-cardboard"></i> SYSTEM: INTERACTIVE MODE
+        </h1>
+        
+        <div style="width: 100px;"></div> 
+    </div>
+
+    <div id="input-screen" class="input-box scanner-box">
+        
+        <div class="bg-video-layer">
+            <video autoplay muted loop playsinline>
+                <source src="assets/videos/124683-731575432.mp4" type="video/mp4">
+            </video>
+            <div class="bg-overlay"></div>
+        </div>
+
+        <div class="content-wrapper">
+            <h2 style="font-family:'Orbitron'; color:var(--neon-blue); letter-spacing:2px; margin-top:0;">
+                <i class="fas fa-satellite-dish"></i> GATE KEY SCANNER
+            </h2>
+            
+            <div class="scanner-wrapper" style="width: 100%;">
+                <div class="input-group">
+                    <input type="text" id="yt-url" class="url-input" 
+                           placeholder="PASTE YOUTUBE KEY HERE..." 
+                           oninput="scanGateKey()">
+                    
+                    <button class="paste-btn" onclick="pasteFromClipboard()" title="Paste from Clipboard">
+                        <i class="fas fa-paste"></i>
+                    </button>
+                </div>
+
+                <div id="scan-status" class="scan-status hidden">
+                    <i class="fas fa-circle-notch fa-spin"></i> ANALYZING COORDINATES...
+                </div>
+
+                <div id="gate-preview" class="gate-preview hidden">
+                    <div class="preview-thumb">
+                        <img id="prev-img" src="" alt="Dungeon">
+                        <div class="live-badge">LIVE SCAN</div>
+                    </div>
+                    <div class="preview-info">
+                        <h4 id="prev-title">Unknown Dungeon</h4>
+                        <span id="prev-channel">Guild: Unknown</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button id="toggle-btn" onclick="toggleManual()" class="manual-link">
+                    [ Switch to Manual Transcript Mode ]
+                </button>
+            </div>
+            
+            <div id="manual-container" class="hidden" style="margin-top:10px; width: 100%;">
+                <textarea id="manual-text" class="url-input" style="height:100px; text-align:left;" placeholder="Paste Lecture Text Here..."></textarea>
+            </div>
+
+            <br>
+            <button id="open-gate-btn" class="action-btn disabled" onclick="initDungeon()">
+                <i class="fas fa-lock"></i> ENTER GATE
+            </button>
+        </div>
+    </div>
+
+    <div id="loading-screen" class="hidden" style="margin-top:50px;">
+        <div class="loader"></div>
+        <h2 class="blink" style="color:var(--neon-blue); font-family:'Orbitron';">SYNCHRONIZING WITH SYSTEM...</h2>
+    </div>
+
+    <div id="game-screen">
+        
+        <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center;">
+            <button onclick="goFullScreen()" class="action-btn" style="flex:1; border:1px solid var(--neon-blue); background: rgba(0, 234, 255, 0.1); color: var(--neon-blue); font-size:0.8rem;">
+                <i class="fas fa-expand"></i> EXPAND
+            </button>
+            
+            <button onclick="toggleQuizSystem()" id="quiz-toggle-btn" class="action-btn" style="flex:1; border:1px solid var(--neon-gold); background: rgba(255, 215, 0, 0.1); color: var(--neon-gold); font-size:0.8rem;">
+                <i class="fas fa-shield-alt"></i> QUIZ: ON
+            </button>
+            
+            <button onclick="toggleManaZone()" id="mana-btn" class="action-btn" style="flex:1; border:1px solid var(--neon-purple); background: rgba(189, 0, 255, 0.1); color: var(--neon-purple); font-size:0.8rem;">
+                <i class="fas fa-headphones-alt"></i> FOCUS
+            </button>
+        </div>
+
+        <div id="mana-interface" class="hidden" style="background: rgba(20, 0, 40, 0.9); border: 1px solid var(--neon-purple); padding: 15px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 0 30px rgba(189, 0, 255, 0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="mana-timer" id="focus-timer" style="font-family: 'Orbitron'; font-size: 2.5rem; color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple);">25:00</div>
+                
+                <div class="mana-controls">
+                    <div class="sound-select-wrapper">
+                        <i class="fas fa-swatchbook" style="color:var(--neon-blue);"></i>
+                        <select id="atmosphere-select" onchange="changeAtmosphere(this.value)">
+                            <option value="lofi">🎵 HUNTER'S RADIO</option>
+                            <option value="rain">🌧️ ABYSSAL RAIN</option>
+                            <option value="forest">🌲 ELVEN FOREST</option>
+                            <option value="focus">🌊 DEEP DIVE</option>
+                            <option value="epic">⚔️ RULER'S AUTHORITY</option>
+                        </select>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="fas fa-volume-down" style="color:#aaa;"></i>
+                        <input type="range" min="0" max="100" value="30" oninput="adjustLoFiVolume(this.value)" style="width:80px; accent-color:var(--neon-purple);">
+                        <button onclick="toggleLoFi()" class="mini-btn"><i class="fas fa-play" id="music-icon"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div id="lofi-player" style="display:none;"></div> 
+        </div>
+
+        <div id="master-container" class="video-wrapper">
+    
+    <div id="player"></div> 
+    
+    <div id="quiz-overlay" class="system-intervention">
+        <div class="quiz-card">
+            <div class="alert-header"><i class="fas fa-brain"></i> CONCEPT CHECKPOINT</div>
+            <p id="q-text" class="question-text">Loading...</p>
+            <div id="q-options"></div>
+            <button id="resume-btn" class="action-btn" style="margin-top:20px; display:none; width:100%;" onclick="resumeVideo()">CONTINUE >></button>
+        </div>
+    </div>
+
+    <div id="gift-overlay" class="system-intervention hidden">
+        <div class="quiz-card" style="border-color: var(--neon-gold);">
+            <div class="alert-header" style="color: var(--neon-gold);"><i class="fas fa-trophy"></i> SYSTEM REWARD</div>
+            <div class="gift-icon" onclick="claimReward()"><i class="fas fa-gift"></i></div>
+            <h3 style="color: #eee;">RARE ITEM DROPPED!</h3>
+            <button class="action-btn" onclick="claimReward()" style="background: var(--neon-gold); color: black;">OPEN & CLAIM</button>
+        </div>
+    </div>
+
+    <div id="reward-overlay" class="hidden">
+        <video id="reward-video">
+            <source src="" type="video/mp4">
+        </video>
+        <button class="skip-btn" onclick="closeReward()">SKIP >></button>
+    </div>
+
+</div> ```
+
+
+        <div id="quest-section" class="quest-panel">
+            <div class="panel-header">
+                <h3><i class="fas fa-tools"></i> HUNTER SUPPORT SYSTEM</h3>
+                
+                <button onclick="openGrimoire()" style="background:transparent; border:none; color:var(--neon-gold); cursor:pointer;" title="Open Saved Notes">
+                    <i class="fas fa-book"></i> VIEW SAVED NOTES
+                </button>
+            </div>
+
+           <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+                <button onclick="extractNotes()" class="action-btn" style="background: linear-gradient(45deg, #bd00ff, #7b00ff); border: 1px solid #bd00ff; flex: 1;">
+                    <i class="fas fa-magic"></i> EXTRACT NOTES
+                </button>
+                
+                <button onclick="fetchProjects()" class="action-btn" style="background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); flex: 1;">
+                    <i class="fas fa-scroll"></i> GET QUESTS
+                </button>
+                
+                <button onclick="openQuestLog()" style="background:transparent; border:1px solid #555; color:white; width:50px; cursor:pointer;" title="My Active Quests">
+                    <i class="fas fa-clipboard-list"></i>
+                </button>
+
+                <button onclick="summonShadow()" class="action-btn" style="background: #1a1a2e; border: 1px solid #555; color: white; flex: 1;">
+                    <i class="fas fa-ghost"></i> SUMMON
+                </button>
+            </div>
+
+            <div id="system-loading" class="hidden" style="text-align: center; padding: 20px; color: var(--neon-blue);">
+                <i class="fas fa-circle-notch fa-spin"></i> ACCESSING DATABASE...
+            </div>
+            
+            <div id="project-loading" class="hidden" style="text-align: center; padding: 20px; color: var(--neon-blue);">
+                <i class="fas fa-circle-notch fa-spin"></i> GENERATING QUESTS...
+            </div>
+
+            <div id="shadow-note-card" class="note-card hidden">
+                <div class="note-header">
+                    <span id="note-title">TOPIC TITLE</span>
+                    <button id="save-note-btn" onclick="saveCurrentNote()" style="background:transparent; border:1px solid var(--neon-blue); color:var(--neon-blue); padding:5px 10px; cursor:pointer; font-family:'Orbitron'; border-radius:5px;">
+                        <i class="fas fa-save"></i> SAVE
+                    </button>
+                </div>
+                <div id="note-points" class="note-list" style="max-height: 300px; overflow-y: auto; padding-right:10px;"></div>
+                <div class="note-footer" id="note-tip">PRO TIP: Use these notes for revision.</div>
+            </div>
+
+            <div id="project-list" class="project-grid"></div>
+        </div>
+
+        <div class="summary-ticker" id="summary-log" style="margin-top:20px; text-align:left; color:#aaa; font-size:0.9rem;"></div>
+        
+        <button class="complete-btn" onclick="finishDungeon()">
+            <i class="fas fa-flag-checkered"></i> COMPLETE DUNGEON & EXIT
+        </button>
+    </div>
+
+    <div id="summon-overlay" class="hidden">
+        <div class="summon-circle"></div> 
+        <div class="particles"></div> 
+        <img src="photos/download-removebg-preview.png" id="summon-avatar" alt="Shadow Soldier">
+        <h2 class="summon-text">ARISE...</h2>
+    </div>
+
+    <div id="grimoire-overlay" class="system-intervention hidden">
+        <div class="quiz-card" style="border-color: var(--neon-gold); width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
+            <div class="alert-header" style="color: var(--neon-gold);">
+                <i class="fas fa-book"></i> HUNTER'S GRIMOIRE
+            </div>
+            <div id="grimoire-list" style="flex:1; overflow-y: auto; text-align: left; padding: 10px;"></div>
+            <button class="action-btn" onclick="document.getElementById('grimoire-overlay').style.display='none'" style="margin-top: 10px; background:transparent; border:1px solid var(--neon-gold); color:var(--neon-gold);">CLOSE BOOK</button>
+        </div>
+    </div>
+
+    <div id="quest-log-overlay" class="system-overlay hidden">
+        <div class="alert-box" style="width: 600px; border-color: var(--neon-blue);">
+            <div class="alert-header">
+                <i class="fas fa-clipboard-list"></i> ACTIVE CONTRACTS
+            </div>
+            <div id="quest-log-content" style="padding:20px; max-height:60vh; overflow-y:auto;"></div>
+            <div style="padding:10px; text-align:right; border-top:1px solid #333;">
+                <button class="action-btn" onclick="document.getElementById('quest-log-overlay').style.display='none'">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="clear-overlay" class="system-intervention hidden" style="background: rgba(0,0,0,0.95);">
+        <div class="clear-card">
+            <h1 class="clear-title">DUNGEON CLEARED</h1>
+            <div class="rank-stamp" id="final-rank">S</div>
+            <div class="clear-stats">
+                <div class="stat-row">
+                    <span>ACCURACY:</span>
+                    <span id="final-accuracy" style="color:var(--neon-blue);">100%</span>
+                </div>
+                <div class="stat-row">
+                    <span>XP EARNED:</span>
+                    <span id="final-xp" style="color:var(--neon-gold);">+0 XP</span>
+                </div>
+            </div>
+            <button class="action-btn" onclick="exitDungeon()">
+                <i class="fas fa-door-open"></i> RETURN TO LOBBY
+            </button>
+        </div>
+    </div>
+
+    <script src="js/audio-manager.js"></script>
+    <script src="js/lofi-system.js"></script> 
+    <script type="module" src="js/study-game.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/hunter-db.js"></script>
+
+</body>
+</html>

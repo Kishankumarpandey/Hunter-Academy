@@ -3,240 +3,373 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skill Map | System Progression</title>
-    
-    <link rel="stylesheet" href="css/login.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-    
-    <style>
-        /* --- KEEPING YOUR EXACT CSS --- */
-        :root {
-            --neon-blue: #00eaff;
-            --neon-red: #ff0055;
-            --locked-grey: #333;
-            --system-bg: rgba(2, 6, 23, 0.8);
-        }
-
-        body { overflow-y: auto; padding: 50px 0; background-attachment: fixed; }
-
-        .map-container { max-width: 600px; margin: 0 auto; text-align: center; position: relative; z-index: 10; }
-
-        .map-header h2 { font-family: 'Orbitron'; color: white; font-size: 2.5rem; text-shadow: 0 0 20px var(--neon-blue); letter-spacing: 3px; animation: glowHeader 3s infinite alternate; }
-        .map-header p { color: #aaa; font-family: 'Rajdhani'; font-size: 1.1rem; margin-bottom: 50px; }
-
-        /* SKILL NODE STYLES */
-        .skill-node {
-            width: 100%; max-width: 550px; background: rgba(10, 10, 20, 0.6); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1); padding: 25px; display: flex; align-items: center; justify-content: space-between;
-            position: relative; clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
-            transition: all 0.3s; opacity: 0; transform: translateY(30px); animation: slideUp 0.6s forwards;
-        }
-
-        .node-wrapper:nth-child(1) .skill-node { animation-delay: 0.1s; }
-        .node-wrapper:nth-child(2) .skill-node { animation-delay: 0.3s; }
-        .node-wrapper:nth-child(3) .skill-node { animation-delay: 0.5s; }
-        .node-wrapper:nth-child(4) .skill-node { animation-delay: 0.7s; }
-
-        .node-left { display: flex; align-items: center; gap: 20px; }
-        .node-icon { width: 65px; height: 65px; background: rgba(0,0,0,0.6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; border: 2px solid #444; color: #555; transition: 0.3s; }
-        .node-info { text-align: left; }
-        .node-info h3 { font-family: 'Orbitron'; color: white; font-size: 1.2rem; margin: 0 0 5px 0; }
-        .node-info p { color: #888; font-size: 0.9rem; font-family: 'Rajdhani'; margin: 0; }
-
-        /* UNLOCKED STATE */
-        .skill-node.unlocked {
-            border-color: var(--neon-blue); background: rgba(0, 234, 255, 0.05);
-            box-shadow: 0 0 30px rgba(0, 234, 255, 0.1); animation: slideUp 0.6s forwards, floatNode 4s ease-in-out infinite;
-        }
-        .skill-node.unlocked .node-icon { border-color: var(--neon-blue); color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
-        .status-active { color: var(--neon-blue); font-weight: bold; text-transform: uppercase; }
-
-        .enter-btn {
-            background: linear-gradient(45deg, var(--neon-blue), #00aaff); color: black; border: none; padding: 12px 25px;
-            font-family: 'Orbitron'; font-weight: bold; cursor: pointer;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: 0.3s;
-        }
-        .enter-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px var(--neon-blue); color: white; }
-
-        /* LOCKED STATE */
-        .skill-node.locked { opacity: 0.8; filter: grayscale(0.8); cursor: not-allowed; }
-        .lock-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; color: #444; z-index: 2; opacity: 0.5; }
-
-        /* CONNECTORS */
-        .node-wrapper { display: flex; flex-direction: column; align-items: center; }
-        .connector { width: 4px; height: 50px; background: #222; position: relative; z-index: 1; }
-        .connector.active-path { background: linear-gradient(to bottom, var(--neon-blue), #222); box-shadow: 0 0 15px var(--neon-blue); }
-
-        /* ANIMATIONS */
-        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
-        @keyframes glowHeader { from { text-shadow: 0 0 10px var(--neon-blue); } to { text-shadow: 0 0 30px var(--neon-blue), 0 0 10px white; } }
-        @keyframes floatNode { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        @keyframes shakeError { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
-        .shake-active { animation: shakeError 0.4s ease-in-out; border-color: var(--neon-red) !important; box-shadow: 0 0 20px var(--neon-red) !important; }
-
-    </style>
+    <title>Hunter's Guild | System Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/game-map.css">
 </head>
 <body>
 
-    <div class="cyber-grid"></div>
-    <div class="overlay"></div>
+    <div class="stars"></div>
 
-    <div class="map-container">
-        <div class="map-header">
-            <h2>SYSTEM PROGRESSION</h2>
-            <p>PLAYER: <span id="player-name" style="color: var(--neon-blue);">LOADING...</span></p>
-        </div>
-
-        <div class="skill-chain">
-
-            <div class="node-wrapper">
-                <div id="node-1" class="skill-node unlocked">
-                    <div class="node-left">
-                        <div class="node-icon"><i class="fas fa-code"></i></div>
-                        <div class="node-info">
-                            <h3>LVL 1: C PROGRAMMING</h3>
-                            <p id="status-1">Status: <span class="status-active">Available</span></p>
-                        </div>
-                    </div>
-                    <button class="enter-btn" onclick="location.href='level.html'">ENTER</button>
-                </div>
-                <div id="conn-1" class="connector active-path"></div>
+    <div class="dashboard-container">
+        
+        <aside class="sidebar">
+            <div class="avatar-frame">
+                <img src="assets/images/swordman.webp" class="avatar-img" onerror="this.src='https://i.pinimg.com/736x/0d/64/98/0d64989794b1a4c9d89bf54655e566e6.jpg'">
+                <div class="rank-badge" id="player-rank">E-RANK</div>
             </div>
 
-            <div class="node-wrapper">
-                <div id="node-2" class="skill-node locked">
-                    <div class="lock-overlay"><i class="fas fa-lock"></i></div>
-                    <div class="node-left">
-                        <div class="node-icon"><i class="fas fa-microchip"></i></div>
-                        <div class="node-info">
-                            <h3>LVL 2: MICROCONTROLLERS</h3>
-                            <p id="status-2">Status: Locked (Req. LVL 1)</p>
-                        </div>
-                    </div>
-                </div>
-                <div id="conn-2" class="connector"></div>
-            </div>
+            <div class="player-info">
+                <h2 id="player-name">JIN-WOO</h2>
+                <p>SHADOW MONARCH</p>
 
-            <div class="node-wrapper">
-                <div id="node-3" class="skill-node locked">
-                    <div class="lock-overlay"><i class="fab fa-linux"></i></div>
-                    <div class="node-left">
-                        <div class="node-icon"><i class="fas fa-terminal"></i></div>
-                        <div class="node-info">
-                            <h3>LVL 3: EMBEDDED LINUX</h3>
-                            <p id="status-3">Status: Locked (Req. LVL 2)</p>
-                        </div>
-                    </div>
+                <div class="stat-row">
+                    <span><i class="fas fa-layer-group"></i> LEVEL</span>
+                    <span style="color: white; font-weight:bold;" id="player-lvl">1</span>
                 </div>
-                <div id="conn-3" class="connector"></div>
-            </div>
-
-            <div class="node-wrapper">
-                <div id="node-4" class="skill-node locked">
-                    <div class="lock-overlay"><i class="fas fa-stopwatch"></i></div>
-                    <div class="node-left">
-                        <div class="node-icon"><i class="fas fa-network-wired"></i></div>
-                        <div class="node-info">
-                            <h3>LVL 4: RTOS ARCHITECT</h3>
-                            <p id="status-4">Status: Locked (Req. LVL 3)</p>
-                        </div>
-                    </div>
+                <div class="stat-row">
+                    <span><i class="fas fa-fist-raised"></i> STRENGTH</span>
+                    <span style="color: var(--neon-purple);" id="stat-str">10</span>
+                </div>
+                <div class="stat-row">
+                    <span><i class="fas fa-brain"></i> INTELLECT</span>
+                    <span style="color: var(--neon-blue);" id="stat-int">10</span>
+                </div>
+                <div class="stat-row">
+                    <span><i class="fas fa-bolt"></i> AGILITY</span>
+                    <span style="color: var(--neon-gold);" id="stat-agi">10</span>
                 </div>
             </div>
 
+            <div class="xp-bar-container" style="margin-top: 20px; width: 100%;">
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:5px;">
+                    <span id="xp-text-label">XP PROGRESS</span>
+                    <span id="xp-text">0 / 100 XP</span>
+                </div>
+                <div style="width:100%; height:8px; background:#333; border-radius:4px; overflow:hidden;">
+                    <div id="xp-bar" style="width:0%; height:100%; background:linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); box-shadow: 0 0 10px var(--neon-blue); transition: width 0.5s ease;"></div>
+                </div>
+            </div>
+            
+            <div style="margin-top:auto; text-align:center;">
+                 <button onclick="resetProgress()" class="reset-link" style="opacity:0.5; font-size:0.7rem;">[ SYSTEM RESET ]</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <div class="top-bar">
+                <div class="system-status">
+                    <span class="status-dot"></span> SYSTEM ONLINE
+                </div>
+                <button onclick="handleLogout()" class="logout-btn">
+                    <i class="fas fa-power-off"></i> DISCONNECT
+                </button>
+            </div>
+
+            <section class="input-panel">
+                <h2><i class="fas fa-dungeon"></i> GENERATE INSTANCE DUNGEON</h2>
+                <div class="url-box-wrapper">
+                    <input type="text" id="dashboard-url" class="url-input" placeholder="PASTE YOUTUBE VIDEO LINK HERE...">
+                    <button class="enter-btn" onclick="enterGate()">OPEN GATE</button>
+                </div>
+            </section>
+
+            <button onclick="toggleLeaderboard()" class="menu-btn" style="border: 1px solid var(--neon-gold); color: var(--neon-gold); background: rgba(255, 215, 0, 0.1); padding: 10px 20px; cursor: pointer; font-family: 'Orbitron'; border-radius: 5px; display: flex; align-items: center; gap: 10px; transition: 0.3s; margin-bottom: 20px;">
+                <i class="fas fa-trophy" style="font-size: 1.2rem;"></i> 
+                <span>GLOBAL RANKINGS</span>
+            </button>
+
+            <div class="grid-header">
+                <span>RECENT DUNGEONS</span>
+                <button onclick="clearHistory()" class="clear-history-btn">[ CLEAR HISTORY ]</button>
+            </div>
+            
+            <div class="cards-grid" id="recents-grid">
+                <div class="empty-msg">NO RECENT DUNGEONS FOUND. START A NEW ONE!</div>
+            </div>
+        </main>
+    </div>
+
+    <div class="corner-hud">
+        <button onclick="openPathfinder()" class="cyber-btn purple-tech">
+            <div class="btn-content">
+                <i class="fas fa-map-signs"></i>
+                <span class="label">ROADMAP</span>
+                <span class="tech-tag">01</span>
+            </div>
+        </button>
+        
+        <button onclick="openGrimoire()" class="cyber-btn gold-tech">
+            <div class="btn-content">
+                <i class="fas fa-book"></i>
+                <span class="label">GRIMOIRE</span>
+                <span class="tech-tag">02</span>
+            </div>
+        </button>
+        
+        <button onclick="openQuestLog()" class="cyber-btn blue-tech">
+            <div class="btn-content">
+                <i class="fas fa-clipboard-list"></i>
+                <span class="label">QUESTS</span>
+                <span class="tech-tag">03</span>
+            </div>
+        </button>
+        
+        <button onclick="forceDailyQuest()" class="cyber-btn grey-tech">
+            <div class="btn-content">
+                <i class="fas fa-dumbbell"></i>
+                <span class="label">TRAINING</span>
+                <span class="tech-tag">04</span>
+            </div>
+        </button>
+
+        <button onclick="openConfig()" class="cyber-btn grey-tech" style="width: 60px; padding:0;">
+            <div class="btn-content" style="padding:0; justify-content:center;">
+                <i class="fas fa-cog fa-spin-hover"></i> 
+            </div>
+        </button>
+    </div>
+
+    <div id="system-alert" class="system-overlay hidden">
+        <div class="alert-box">
+            <div class="alert-header"><i class="fas fa-exclamation-circle"></i> SYSTEM ALERT</div>
+            <div class="alert-content">
+                <h3 style="color:#007bff; margin:0 0 5px 0; font-family:'Orbitron'">DAILY QUEST: PREPARATION</h3>
+                <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Complete physical training to activate system buff.</p>
+                <div class="quest-list">
+                    <div class="quest-item completed"><input type="checkbox" checked disabled><span>System Check-in (Completed)</span></div>
+                    <label class="quest-item" onclick="toggleTask(this)"><input type="checkbox"><span>10 Push-ups (Strength +1)</span></label>
+                    <label class="quest-item" onclick="toggleTask(this)"><input type="checkbox"><span>Hold Breath 20s (Focus +1)</span></label>
+                </div>
+                <div class="alert-actions">
+                    <button id="claim-btn" class="action-q-btn btn-claim" onclick="completeDailyQuest()">INCOMPLETE</button>
+                    <button class="action-q-btn btn-skip" onclick="skipDailyQuest()">SKIP</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script type="module">
-        import { auth, db } from './js/firebase-config.js';
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    <div id="roadmap-overlay" class="system-overlay hidden">
+        <div class="alert-box" style="width: 700px; border-color: var(--neon-purple); max-height:80vh; display:flex; flex-direction:column;">
+            <div class="alert-header" style="background: var(--neon-purple);"><i class="fas fa-compass"></i> THE ORACLE'S PATH</div>
+            <div class="alert-content" style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
+                <p>What implies your destiny? (e.g., Data Scientist, Game Dev)</p>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="role-input" class="url-input" placeholder="Enter Job Role..." style="margin:0; text-align:left;">
+                    <button class="accept-quest-btn" style="width:auto; background:var(--neon-purple); border-color:var(--neon-purple);" onclick="fetchRoadmap()">GENERATE</button>
+                </div>
+                <div id="role-history-container" style="margin-top:15px; display:flex; flex-wrap:wrap; gap:10px;"></div>
+                <div id="roadmap-loading" class="hidden" style="margin-top:20px; text-align:center; color:var(--neon-purple);"><i class="fas fa-magic fa-spin"></i> CALCULATING PATH...</div>
+                <div id="roadmap-steps" style="margin-top:20px; overflow-y:auto; flex:1; text-align:left; padding-right:10px;"></div>
+            </div>
+            <div style="padding:15px; border-top:1px solid #333;">
+                <button class="accept-quest-btn" style="width:100%;" onclick="document.getElementById('roadmap-overlay').style.display='none'">CLOSE ORACLE</button>
+            </div>
+        </div>
+    </div>
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // Show Player Name
-                document.getElementById('player-name').innerText = (user.displayName || "HUNTER").toUpperCase();
+    <div id="grimoire-overlay" class="system-overlay hidden">
+        <div class="alert-box" style="width: 700px; border-color: var(--neon-gold); max-height:85vh; display:flex; flex-direction:column;">
+            <div class="alert-header" style="background: rgba(255, 215, 0, 0.1); color: var(--neon-gold); border-bottom: 1px solid var(--neon-gold);">
+                <i class="fas fa-book-journal-whills"></i> HUNTER'S GRIMOIRE (SAVED INTEL)
+            </div>
+            <div id="grimoire-content" style="flex:1; overflow-y: auto; padding: 20px; text-align: left;"></div>
+            <div style="padding:15px; border-top:1px solid #333; display:flex; justify-content:flex-end;">
+                <button class="accept-quest-btn" onclick="document.getElementById('grimoire-overlay').style.display='none'" style="border-color:var(--neon-gold); color:var(--neon-gold);">CLOSE BOOK</button>
+            </div>
+        </div>
+    </div>
 
-                // Get Data from Database
-                const docRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(docRef);
+    <div id="quest-log-overlay" class="system-overlay hidden">
+        <div class="alert-box" style="width: 600px; border-color: var(--neon-blue);">
+            <div class="alert-header">
+                <i class="fas fa-clipboard-list"></i> ACTIVE CONTRACTS
+            </div>
+            <div id="quest-log-content" style="padding:20px; max-height:60vh; overflow-y:auto;"></div>
+            <div style="padding:10px; text-align:right; border-top:1px solid #333;">
+                <button class="accept-quest-btn" onclick="document.getElementById('quest-log-overlay').style.display='none'" style="width:100%; border-color:var(--neon-blue); color:var(--neon-blue);">CLOSE</button>
+            </div>
+        </div>
+    </div>
 
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    
-                    // CHECK PROGRESS: 'completedLevels' field ko check karega
-                    // level.html me humne ye field badhaya tha.
-                    const progress = data.completedLevels || 0; 
+    <div id="config-overlay" class="system-overlay hidden">
+        <div class="alert-box" style="width: 600px; border-color: var(--neon-blue);">
+            <div class="alert-header">
+                <i class="fas fa-sliders-h"></i> CONFIGURE REWARD PROTOCOL
+            </div>
+            <div class="alert-content" style="text-align: center;">
+                <p style="color: #aaa; margin-bottom: 20px;">Choose your source of dopamine.</p>
+                <div class="chip-grid" style="grid-template-columns: repeat(2, 1fr);">
+                    <div class="reward-chip active-chip" onclick="selectRewardType('kings', this)">
+                        <i class="fas fa-crown" style="color: var(--neon-gold);"></i>
+                        <span style="color: var(--neon-gold);">KING'S MINDSET</span>
+                        <small>Domination / Motivation / Anime </small>
+                    </div>
+                    <div class="reward-chip" onclick="selectRewardType('recovery', this)">
+                        <i class="fas fa-leaf" style="color: var(--neon-blue);"></i>
+                        <span style="color: var(--neon-blue);">RECOVERY</span>
+                        <small>Peace / Satisfaction</small>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 15px;">
+                    <button class="accept-quest-btn" onclick="closeConfig()">CONFIRM PROTOCOL</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    console.log("Current Progress:", progress);
+    <div id="leaderboard-panel" class="leaderboard-sidebar closed">
+        <div class="neon-edge"></div>
 
-                    // Logic to Unlock
-                    if (progress >= 1) {
-                        unlockNode(2); // Unlock Level 2
-                    }
-                    if (progress >= 2) {
-                        unlockNode(3); // Unlock Level 3
-                    }
-                    if (progress >= 3) {
-                        unlockNode(4); // Unlock Level 4
-                    }
-                }
-            } else {
-                window.location.href = 'login.html';
-            }
-        });
+        <div class="panel-content">
+            <div class="panel-header">
+                <div>
+                    <h2 style="margin:0; font-family:'Orbitron'; color:var(--neon-blue); letter-spacing: 2px;">
+                        <i class="fas fa-crown" style="color:var(--neon-gold);"></i> TOP HUNTERS
+                    </h2>
+                    <small style="color:#777; font-family:'Rajdhani';">SEASON 1 • GLOBAL SERVER</small>
+                </div>
+                <button onclick="toggleLeaderboard()" class="close-icon-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
-        // Function to visually unlock a node
-        function unlockNode(levelNum) {
-            const node = document.getElementById(`node-${levelNum}`);
-            const statusText = document.getElementById(`status-${levelNum}`);
-            const prevConnector = document.getElementById(`conn-${levelNum - 1}`);
-
-            // 1. Remove 'locked' class, add 'unlocked'
-            node.classList.remove('locked');
-            node.classList.add('unlocked');
-
-            // 2. Remove Lock Icon overlay
-            const lockOverlay = node.querySelector('.lock-overlay');
-            if(lockOverlay) lockOverlay.remove();
-
-            // 3. Update Text
-            statusText.innerHTML = 'Status: <span class="status-active">Available</span>';
-
-            // 4. Add Enter Button (avoid duplicates)
-            if (!node.querySelector('.enter-btn')) {
-                const btn = document.createElement('button');
-                btn.className = 'enter-btn';
-                btn.innerText = 'ENTER';
+            <div class="leaderboard-list-container nice-scroll">
                 
-                // Link to next page (abhi dummy link hai)
-                if (levelNum === 2) {
-    btn.onclick = () => location.href = 'level-2.html';
-} else {
-    // बाकी लेवल्स के लिए अभी भी अलर्ट रहेगा
-    btn.onclick = () => alert("SYSTEM: Level " + levelNum + " Under Construction.");
-}
-                
-                node.appendChild(btn);
-            }
+                <div id="leaderboard-body">
+                    <div style="text-align:center; padding:20px; color:#555;">
+                        <i class="fas fa-circle-notch fa-spin"></i> CONNECTING TO DATABASE...
+                    </div>
+                </div>
 
-            // 5. Glow the path connecting to it
-            if (prevConnector) {
-                prevConnector.classList.add('active-path');
-            }
+                <div id="my-sticky-rank" class="rank-row my-rank-sticky hidden">
+                    <div class="rank-num" id="my-rank-num" style="color:var(--neon-blue)">-</div>
+                    <div class="rank-info">
+                        <span class="rank-name" style="color:var(--neon-blue)">YOU</span>
+                        <span class="rank-guild">Fetching...</span>
+                    </div>
+                    <div class="rank-xp" id="my-rank-xp" style="color:white">0 XP</div>
+                </div>
+
+            </div> 
+        </div> 
+    </div>
+
+<div id="levelup-overlay" class="system-overlay hidden" style="backdrop-filter: blur(10px);">
+    <div class="levelup-card">
+        
+        <div class="levelup-header">
+            <h1 class="glitch-text" data-text="SYSTEM ALERT">SYSTEM ALERT</h1>
+        </div>
+
+        <div class="levelup-body">
+            <h2 style="color:var(--neon-gold); font-family:'Orbitron'; font-size:2.5rem; margin:10px 0;">LEVEL UP!</h2>
+            
+            <div class="stat-comparison">
+                <div class="stat-old">LVL <span id="lvl-old">5</span></div>
+                <div class="arrow">➜</div>
+                <div class="stat-new">LVL <span id="lvl-new">6</span></div>
+            </div>
+
+            <p style="color:#aaa; font-size:0.9rem;">Your stats have increased.</p>
+            
+            <div class="rewards-grid">
+                <div class="reward-item">STR <span style="color:var(--neon-blue)">+2</span></div>
+                <div class="reward-item">INT <span style="color:var(--neon-blue)">+2</span></div>
+                <div class="reward-item">AGI <span style="color:var(--neon-blue)">+1</span></div>
+            </div>
+        </div>
+
+        <button onclick="closeLevelUp()" class="accept-quest-btn" style="margin-top:20px; width:100%;">
+            ACCEPT REALITY
+        </button>
+    </div>
+</div>
+<div class="guild-floater" onclick="openGuildInterface()">
+    <div class="guild-glow"></div>
+    <div class="guild-content-wrapper">
+        <i class="fas fa-crown"></i>
+        <span class="guild-label">GUILD</span>
+    </div>
+</div>
+<div id="guild-overlay" class="system-overlay hidden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+    <div class="alert-box" style="width: 700px; border-color: var(--neon-gold); background:#0a0f1e; border: 1px solid #FFD700; padding:0;">
+        
+        <div class="alert-header" style="background: rgba(255, 215, 0, 0.1); color: var(--neon-gold); padding:15px; border-bottom:1px solid #FFD700; font-family:'Orbitron';">
+            <i class="fas fa-dungeon"></i> HUNTER GUILD ASSOCIATION
+        </div>
+
+        <div class="guild-content" style="padding: 30px; display: flex; gap: 20px;">
+            
+            <div style="flex: 1; border-right: 1px solid #333; padding-right: 20px;">
+                <h3 style="color:white; font-family:'Orbitron'; margin-top:0;">JOIN A GUILD</h3>
+                <p style="color:#aaa; font-size:0.9rem;">Enter an invite code to join an existing guild.</p>
+                
+                <input type="text" id="guild-code-input" class="url-input" placeholder="ENTER GUILD CODE (e.g. SL-8842)" style="width: 100%; text-transform:uppercase; background:#111; color:white; border:1px solid #333; padding:10px; margin-bottom:10px;">
+                
+                <button onclick="joinGuild()" class="accept-quest-btn" style="width: 100%; margin-top: 10px;">
+                    CONFIRM JOIN
+                </button>
+            </div>
+
+            <div style="flex: 1; padding-left: 10px;">
+                <h3 style="color:var(--neon-gold); font-family:'Orbitron'; margin-top:0;">FOUND A GUILD</h3>
+                <p style="color:#aaa; font-size:0.9rem;">Become a Guild Master. Cost: <span style="color:white">Free (Beta)</span></p>
+                
+                <input type="text" id="new-guild-name" class="url-input" placeholder="GUILD NAME (e.g. Ahjin)" style="width: 100%; background:#111; color:white; border:1px solid #333; padding:10px; margin-bottom:10px;">
+                
+                <button onclick="createGuild()" class="accept-quest-btn" style="width: 100%; margin-top: 10px; border-color: var(--neon-gold); color: var(--neon-gold);">
+                    ESTABLISH GUILD
+                </button>
+            </div>
+
+        </div>
+
+        <div id="my-guild-stats" class="hidden" style="padding: 20px; text-align: center;">
+    
+    <h2 id="display-guild-name" style="color:var(--neon-gold); font-family:'Orbitron'; font-size:2rem; margin:10px 0;">AHJIN GUILD</h2>
+    
+    <div style="background: rgba(255,215,0,0.1); padding: 10px 20px; border-radius: 5px; display: inline-block; margin-bottom: 20px; border:1px dashed #FFD700;">
+        INVITE CODE: <strong id="display-guild-code" style="color:white; letter-spacing: 2px; font-size:1.2rem;">LOADING...</strong>
+    </div>
+
+    <div style="text-align: left; margin-top: 10px;">
+        <h4 style="color:#aaa; border-bottom:1px solid #333; padding-bottom:5px;">GUILD MEMBERS</h4>
+        <div id="guild-members-list" class="nice-scroll" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+            <div style="color:#555; font-style:italic;">Scanning members...</div>
+        </div>
+    </div>
+
+    <p style="color:#aaa; font-size:0.8rem; margin-top:15px;">Share code to recruit hunters.</p>
+</div>
+
+        <div style="padding:15px; text-align:right; border-top:1px solid #333; background:rgba(0,0,0,0.2);">
+            <button class="accept-quest-btn" onclick="closeGuildInterface()" style="width:auto; padding:8px 20px;">CLOSE</button>
+        </div>
+    </div>
+</div>
+
+
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/hunter-db.js"></script>
+    <script type="module" src="js/leaderboard.js"></script>
+    <script type="module" src="js/guild.js"></script>
+
+    <script src="js/game-map.js"></script>
+    <script src="js/audio-manager.js"></script>
+    
+    <script>
+        // 🔥 Toggle Function for Side Panel
+        function toggleLeaderboard() {
+            const panel = document.getElementById('leaderboard-panel');
+            panel.classList.toggle('closed');
+            
+            // Audio Effect (Optional)
+            if(window.audioSys) audioSys.play('hover');
         }
-
-        // Keep the Shake Logic for Locked items
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.skill-node.locked')) {
-                const node = e.target.closest('.skill-node.locked');
-                node.classList.add('shake-active');
-                setTimeout(() => node.classList.remove('shake-active'), 500);
-            }
-        });
-
     </script>
+
 </body>
 </html>

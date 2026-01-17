@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Interaction</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #050510;
+            --igris-red: #ff3333;
+            --shadow-purple: #bd00ff;
+            --text-color: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-color);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            border: 2px solid var(--igris-red);
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(90deg, #1a0000, #330000);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid var(--igris-red);
+            box-shadow: 0 0 20px rgba(255, 51, 51, 0.2);
+        }
+
+        .avatar {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--igris-red);
+            object-fit: cover;
+            box-shadow: 0 0 10px var(--igris-red);
+        }
+
+        .name-plate h2 { margin: 0; font-family: 'Orbitron'; color: var(--igris-red); font-size: 1.2rem; }
+        .name-plate span { font-size: 0.8rem; color: #888; letter-spacing: 1px; }
+
+        /* CHAT AREA */
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(255, 51, 51, 0.05) 0%, transparent 60%);
+        }
+
+        /* MESSAGES */
+        .message {
+            max-width: 85%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-size: 1rem;
+            line-height: 1.5;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .msg-shadow {
+            align-self: flex-start;
+            background: rgba(30, 0, 0, 0.8);
+            border-left: 3px solid var(--igris-red);
+            color: #ffcccc;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .msg-user {
+            align-self: flex-end;
+            background: rgba(20, 20, 35, 0.9);
+            border-right: 3px solid var(--shadow-purple);
+            color: white;
+            text-align: right;
+        }
+
+        /* INPUT AREA */
+        .input-zone {
+            padding: 15px;
+            background: #0a0a15;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 10px;
+        }
+
+        .shadow-input {
+            flex: 1;
+            background: #111;
+            border: 1px solid #444;
+            padding: 12px;
+            color: white;
+            font-family: 'Rajdhani';
+            font-size: 1rem;
+            border-radius: 5px;
+            outline: none;
+        }
+        .shadow-input:focus { border-color: var(--igris-red); box-shadow: 0 0 10px rgba(255, 51, 51, 0.2); }
+
+        .send-btn {
+            background: var(--igris-red);
+            color: black;
+            border: none;
+            padding: 0 20px;
+            font-family: 'Orbitron';
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        .send-btn:hover { box-shadow: 0 0 15px var(--igris-red); transform: scale(1.05); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+
+
+        /* 🔥 NEW SHADOW REPORT STYLES 🔥 */
+        .report-card {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        /* 1. Tactical Analysis (Blue/Purple) */
+        .tactical-analysis {
+            background: rgba(0, 234, 255, 0.1);
+            border-left: 3px solid #00eaff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            color: #ccffff;
+        }
+        .tactical-analysis strong { color: #00eaff; display: block; margin-bottom: 3px; font-family: 'Orbitron'; letter-spacing: 1px; }
+
+        /* 2. Strike Points (List) */
+        .strike-points {
+            margin: 5px 0; padding-left: 20px;
+            list-style: none;
+        }
+        .strike-points li {
+            position: relative;
+            margin-bottom: 5px;
+            color: #ddd;
+            font-size: 0.9rem;
+        }
+        .strike-points li::before {
+            content: '🗡️'; 
+            position: absolute; left: -20px; top: 0px; font-size: 0.8rem;
+        }
+
+        /* 3. Final Blow (Red) */
+        .final-blow {
+            background: linear-gradient(90deg, rgba(255, 51, 51, 0.15), transparent);
+            border-left: 3px solid #ff3333;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #ffcccc;
+            font-style: italic;
+        }
+        .final-blow strong { color: #ff3333; font-family: 'Orbitron'; margin-right: 5px; font-style: normal; }
+
+
+
+        /* 4. Combat Example (Yellow/Gold) - NEW */
+        .combat-example {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px dashed var(--neon-gold, #ffd700);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace; /* Code jaisa font */
+            font-size: 0.85rem;
+            color: #fffacd;
+        }
+        .combat-example strong { color: #ffd700; font-family: 'Orbitron'; display:block; margin-bottom:5px; }
+
+        /* Technical Context Italic Style */
+        em {
+            color: #d8b4fe; /* Light Purple */
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="photos/download-removebg-preview.png" class="avatar" alt="Igris">
+        <div class="name-plate">
+            <h2>IGRIS</h2>
+            <span>COMMANDER RANK • LOYAL</span>
+        </div>
+    </div>
+
+    <div class="chat-area" id="chat-box">
+        <div class="message msg-shadow">
+            My Liege... I have been summoned. <br>
+            We are currently analyzing: <strong style="color:#bd00ff" id="topic-name">Unknown</strong>.<br>
+            What are your orders?
+        </div>
+    </div>
+
+    <div class="input-zone">
+        <input type="text" id="user-input" class="shadow-input" placeholder="Command your shadow..." onkeypress="handleEnter(event)">
+        <button class="send-btn" onclick="sendMessage()">SEND</button>
+    </div>
+
+    <script>
+        // Get Context from LocalStorage (Jo humne set kiya tha)
+        const topic = localStorage.getItem('current_topic') || "General Knowledge";
+        document.getElementById('topic-name').innerText = topic.substring(0, 25) + "...";
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            // 1. Add User Message
+            addMessage(msg, 'user');
+            input.value = '';
+
+            // 2. Loading State
+            const loadingId = addMessage("Analyzing...", 'shadow', true);
+
+            try {
+                const res = await fetch('/chat-with-shadow', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg, context: topic })
+                });
+
+                const data = await res.json();
+                
+                // 3. Remove Loading & Add Shadow Reply
+                document.getElementById(loadingId).remove();
+                addMessage(data.reply, 'shadow');
+
+            } catch (err) {
+                document.getElementById(loadingId).innerHTML = "My Liege... I cannot speak right now.";
+            }
+        }
+
+        function addMessage(text, sender, isLoading = false) {
+            const box = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            const id = 'msg-' + Date.now();
+            
+            div.id = id;
+            div.className = `message msg-${sender}`;
+            
+            if (sender === 'shadow' && !isLoading) {
+                // Typewriter Effect logic can go here, for now direct HTML
+                div.innerHTML = text; 
+            } else {
+                div.innerText = text;
+            }
+
+            if(isLoading) {
+                div.style.fontStyle = "italic";
+                div.style.opacity = "0.7";
+            }
+
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+            return id;
+        }
+    </script>
+
+</body>
+</html>

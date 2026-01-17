@@ -1,0 +1,850 @@
+/* === THEME VARIABLES === */
+:root {
+    --bg-deep: #050510;
+    --panel-bg: rgba(20, 20, 35, 0.9);
+    --neon-blue: #00eaff;
+    --neon-purple: #bd00ff;
+    --neon-gold: #ffd700;
+    --neon-red: #ff3333;
+    --glass-border: rgba(255, 255, 255, 0.15);
+}
+
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0; background-color: var(--bg-deep); color: white;
+    font-family: 'Rajdhani', sans-serif; height: 100vh; overflow: hidden;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 234, 255, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(189, 0, 255, 0.05) 0%, transparent 40%);
+}
+
+/* Particles Background */
+.stars {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: url('https://www.transparenttextures.com/patterns/stardust.png');
+    opacity: 0.4; pointer-events: none; z-index: -1;
+    animation: moveStars 120s linear infinite;
+}
+@keyframes moveStars { from { background-position: 0 0; } to { background-position: 1000px 1000px; } }
+
+/* === LAYOUT === */
+.dashboard-container { display: flex; width: 100%; height: 100%; padding: 20px; gap: 25px; }
+
+/* === SIDEBAR === */
+.sidebar {
+    width: 350px; min-width: 350px;
+    background: linear-gradient(160deg, rgba(10, 12, 20, 0.95), rgba(5, 5, 10, 0.98));
+    border: 1px solid var(--glass-border); border-right: 2px solid var(--neon-blue);
+    border-radius: 20px; padding: 20px;
+    display: flex; flex-direction: column;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 10;
+    position: relative; 
+    height: 100%; 
+    overflow-y: auto; 
+    padding-bottom: 100px; /* Space for Mobile HUD if needed */
+}
+
+/* Scrollbar Hide */
+.sidebar::-webkit-scrollbar { width: 5px; }
+.sidebar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+.avatar-frame {
+    position: relative; width: 100%; height: 200px; 
+    border-radius: 15px; overflow: hidden;
+    border: 2px solid var(--neon-blue); box-shadow: 0 0 25px rgba(0, 234, 255, 0.15); 
+    margin-bottom: 15px; flex-shrink: 0;
+}
+.avatar-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+.avatar-frame:hover .avatar-img { transform: scale(1.05); }
+
+.rank-badge {
+    position: absolute; bottom: 10px; right: 10px;
+    background: black; color: var(--neon-gold); border: 1px solid var(--neon-gold);
+    padding: 5px 12px; font-family: 'Orbitron'; font-weight: bold;
+    border-radius: 5px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); font-size: 1.2rem;
+}
+
+.player-info h2 { font-family: 'Orbitron'; margin: 0; color: var(--neon-blue); font-size: 1.5rem; letter-spacing: 1px; }
+.player-info p { color: #888; margin: 2px 0 15px 0; font-size: 0.8rem; letter-spacing: 2px; }
+
+.stat-row {
+    display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1rem; 
+    border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 2px;
+}
+
+.sidebar-btn {
+    margin-bottom: 8px; width: 100%; padding: 12px;
+    border: none; color: white; font-family: 'Orbitron'; 
+    cursor: pointer; border-radius: 5px; transition: 0.3s; font-size: 0.9rem;
+}
+.purple-btn { background:var(--neon-purple); }
+.gold-btn { background:transparent; border:1px solid var(--neon-gold); color:var(--neon-gold); }
+.gold-btn:hover { background:var(--neon-gold); color:black; }
+.grey-btn { background:#333; border:1px solid #555; color:#aaa; }
+.grey-btn:hover { border-color:white; color:white; }
+.reset-link { background:transparent; border:none; color:#555; cursor:pointer; font-size:0.7rem; font-family:'Orbitron'; margin-top: 10px; }
+
+.xp-bar-container { margin-top: auto; width: 100%; padding-top: 10px; padding-bottom: 10px; }
+
+/* === MAIN CONTENT === */
+.main-content { flex: 1; display: flex; flex-direction: column; gap: 30px; overflow-y: auto; padding-right: 10px; }
+
+/* TOP BAR */
+.top-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.system-status {
+    font-family: 'Orbitron'; color: #00ff00; letter-spacing: 2px; font-size: 0.9rem; display: flex; align-items: center; gap: 10px;
+}
+.status-dot { width: 10px; height: 10px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 10px #00ff00; }
+.logout-btn {
+    background: rgba(255, 0, 0, 0.1); border: 1px solid var(--neon-red); color: var(--neon-red);
+    padding: 8px 15px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8rem; transition: 0.3s;
+}
+.logout-btn:hover { background: var(--neon-red); color: black; box-shadow: 0 0 15px var(--neon-red); }
+
+/* === 🔥 HUD: PERFECTLY BALANCED CYBER-RAIL 🔥 === */
+.corner-hud {
+    position: fixed;
+    bottom: 30px;
+    left: 40px; /* Thoda aur andar liya taaki screen edge se safe rahe */
+    display: flex;
+    flex-direction: row;
+    gap: 15px; /* Buttons ke beech ka gap badhaya */
+    z-index: 3000;
+    perspective: 1000px;
+}
+
+/* === THE CYBER BUTTON === */
+.cyber-btn {
+    position: relative;
+    width: 170px; /* 🔥 Width thodi badhayi taaki content na dabbe */
+    height: 52px;
+    background: rgba(10, 15, 30, 0.9); /* Thoda Solid Dark */
+    border: none;
+    
+    /* Shape */
+    transform: skewX(-20deg); 
+    
+    /* Border Styling */
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-right: 1px solid rgba(255,255,255,0.05); /* Slight Right Border */
+    
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(12px);
+    box-shadow: 5px 5px 20px rgba(0,0,0,0.6);
+}
+
+/* === CONTENT ALIGNMENT (THE FIX) === */
+.btn-content {
+    transform: skewX(20deg); /* Text seedha */
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    
+    /* 🔥 PERFECT SPACING LOGIC */
+    padding-left: 25px;  /* Icon ke liye left space (Skew ko balance karne ke liye) */
+    padding-right: 20px; /* Number ke liye right space */
+}
+
+/* === ICON === */
+.btn-content i {
+    font-size: 1.2rem;
+    color: #888;
+    transition: 0.3s;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+    
+    /* Icon apni jagah fix rahega */
+    flex-shrink: 0; 
+}
+
+/* === LABEL (TEXT) === */
+.btn-content .label {
+    font-family: 'Orbitron';
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 1.5px; /* Letters ke beech space badhaya */
+    color: #ccc;
+    text-transform: uppercase;
+    transition: 0.3s;
+    
+    /* 🔥 Spacing Fixes */
+    margin-left: 12px; /* Icon se doori */
+    white-space: nowrap;
+}
+
+/* === TECH TAG (NUMBER) - PUSH TO RIGHT === */
+.tech-tag {
+    font-family: 'Rajdhani';
+    font-size: 0.7rem;
+    color: var(--neon-blue);
+    font-weight: bold;
+    opacity: 0.5;
+    
+    /* 🔥 MAGIC: Ye number ko end me dhakel dega */
+    margin-left: auto; 
+    padding-left: 5px;
+}
+
+/* === THE CYBER BUTTON (Base Style Update) === */
+.cyber-btn {
+    position: relative;
+    width: 170px;
+    height: 52px;
+    
+    /* Background Default Dark */
+    background: rgba(10, 15, 30, 0.9); 
+    
+    /* Shape */
+    transform: skewX(-20deg);
+    
+    /* Default Border Settings */
+    border: 1px solid rgba(255,255,255,0.1); /* Patla Border */
+    border-left-width: 4px; /* 🔥 Left Border Mota Hoga (Chip Style) */
+    
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(12px);
+    box-shadow: 5px 5px 20px rgba(0,0,0,0.6);
+}
+
+/* === COLOR VARIANTS (Borders & Glows) === */
+
+/* 1. ROADMAP (Purple) */
+.purple-tech {
+    border-color: rgba(189, 0, 255, 0.3); /* Halka Purple Border */
+    border-left-color: #bd00ff; /* Solid Purple Left */
+}
+.purple-tech:hover {
+    border-color: #bd00ff; /* Pura bright */
+    box-shadow: 0 0 20px rgba(189, 0, 255, 0.4);
+    background: rgba(189, 0, 255, 0.1); /* Halka sa Purple Tint BG */
+}
+.purple-tech .btn-content i { color: #bd00ff; } /* Icon pehle se colored */
+
+/* 2. GRIMOIRE (Gold) */
+.gold-tech {
+    border-color: rgba(255, 215, 0, 0.3);
+    border-left-color: #ffd700;
+}
+.gold-tech:hover {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    background: rgba(255, 215, 0, 0.1);
+}
+.gold-tech .btn-content i { color: #ffd700; }
+
+/* 3. QUESTS (Blue) */
+.blue-tech {
+    border-color: rgba(0, 234, 255, 0.3);
+    border-left-color: #00eaff;
+}
+.blue-tech:hover {
+    border-color: #00eaff;
+    box-shadow: 0 0 20px rgba(0, 234, 255, 0.4);
+    background: rgba(0, 234, 255, 0.1);
+}
+.blue-tech .btn-content i { color: #00eaff; }
+
+/* 4. TRAINING (White/Grey) */
+.grey-tech {
+    border-color: rgba(255, 255, 255, 0.3);
+    border-left-color: #ffffff;
+}
+.grey-tech:hover {
+    border-color: #ffffff;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.1);
+}
+.grey-tech .btn-content i { color: #ffffff; }
+
+
+/* === HOVER & TEXT EFFECTS === */
+.cyber-btn::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; width: 0%; height: 2px;
+    background: white; transition: width 0.3s ease-out;
+    box-shadow: 0 0 15px white;
+}
+.cyber-btn:hover { transform: skewX(-20deg) translateY(-4px); }
+.cyber-btn:hover::before { width: 100%; }
+
+/* Hover pe Icon aur Text White ho jaye */
+.cyber-btn:hover .btn-content i { color: white !important; transform: scale(1.1); text-shadow: 0 0 10px white; }
+.cyber-btn:hover .btn-content .label { color: white; }
+.cyber-btn:hover .tech-tag { opacity: 1; color: white; text-shadow: 0 0 8px white; }
+/* === COLOR VARIANTS === */
+.purple-tech:hover::before { background: var(--neon-purple); box-shadow: 0 0 15px var(--neon-purple); }
+.purple-tech:hover .btn-content i { color: var(--neon-purple); text-shadow: 0 0 10px var(--neon-purple); }
+
+.gold-tech:hover::before { background: var(--neon-gold); box-shadow: 0 0 15px var(--neon-gold); }
+.gold-tech:hover .btn-content i { color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); }
+
+.blue-tech:hover::before { background: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
+.blue-tech:hover .btn-content i { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+
+.grey-tech:hover::before { background: #fff; box-shadow: 0 0 15px #fff; }
+.grey-tech:hover .btn-content i { color: #fff; text-shadow: 0 0 10px #fff; }
+
+/* === MOBILE FIX === */
+@media (max-width: 900px) {
+    .corner-hud {
+        left: 0; bottom: 0; width: 100%; gap: 0; padding: 0;
+        background: #050510; border-top: 1px solid #333;
+        transform: none; perspective: none;
+    }
+    .cyber-btn {
+        width: 100%; height: 60px; transform: none; border: none; border-radius: 0;
+        border-bottom: 2px solid transparent; background: transparent;
+    }
+    .btn-content { transform: none; justify-content: center; padding: 0; flex-direction: column; gap: 5px; }
+    .btn-content .label { font-size: 0.6rem; margin: 0; }
+    .tech-tag { display: none; } /* Mobile pe number hata diya */
+    .cyber-btn:hover { transform: none; background: rgba(255,255,255,0.05); }
+}
+
+/* GLOW COLORS (Glow Effect Waisa hi rahega) */
+.purple-glow:hover { border-bottom-color: var(--neon-purple); box-shadow: 0 -8px 20px rgba(189, 0, 255, 0.4); text-shadow: 0 0 8px var(--neon-purple); }
+.gold-glow:hover { border-bottom-color: var(--neon-gold); box-shadow: 0 -8px 20px rgba(255, 215, 0, 0.4); text-shadow: 0 0 8px var(--neon-gold); }
+.blue-glow:hover { border-bottom-color: var(--neon-blue); box-shadow: 0 -8px 20px rgba(0, 234, 255, 0.4); text-shadow: 0 0 8px var(--neon-blue); }
+.grey-glow:hover { border-bottom-color: #fff; box-shadow: 0 -8px 20px rgba(255, 255, 255, 0.4); }
+
+/* MOBILE RESPONSIVE (Mobile pe Text Chupa denge jagah bachane ke liye) */
+@media (max-width: 900px) {
+    .corner-hud {
+        width: 100%; justify-content: space-around; padding: 10px;
+        background: #050510; border-top: 1px solid #333;
+    }
+    .hud-btn { width: 100%; height: 50px; justify-content: center; padding: 0; border-radius: 5px; }
+    .hud-btn:hover { width: 100%; transform: none; }
+    .hud-btn span { display: none; } /* Mobile pe Text Hide */
+}
+/* INPUT PANEL & GRID */
+.input-panel {
+    min-height: 220px; 
+    background: linear-gradient(135deg, rgba(10,10,30,0.95), rgba(0,0,0,0.9));
+    border: 2px solid var(--neon-blue); border-radius: 20px; padding: 40px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    box-shadow: 0 0 50px rgba(0, 234, 255, 0.15);
+}
+.input-panel h2 { font-family: 'Orbitron'; font-size: 2rem; margin: 0 0 20px 0; color: white; text-shadow: 0 0 20px var(--neon-blue); }
+
+.url-box-wrapper { display: flex; gap: 15px; width: 100%; max-width: 900px; }
+.url-input {
+    flex: 1; padding: 20px 25px; height: 70px;
+    background: #050510; border: 2px solid rgba(255,255,255,0.2); 
+    border-radius: 12px; color: var(--neon-blue); 
+    font-family: 'Rajdhani'; font-size: 1.4rem; transition: 0.3s;
+}
+.url-input:focus { outline: none; border-color: var(--neon-blue); box-shadow: 0 0 30px rgba(0, 234, 255, 0.4); }
+
+.enter-btn {
+    padding: 0 40px; height: 70px; background: var(--neon-blue); color: black;
+    border: none; border-radius: 12px; font-family: 'Orbitron'; font-size: 1.2rem; font-weight: bold; 
+    cursor: pointer; transition: 0.3s; white-space: nowrap;
+}
+.enter-btn:hover { box-shadow: 0 0 40px var(--neon-blue); transform: scale(1.05); }
+
+/* GRID & CARDS */
+.grid-header { 
+    font-family: 'Orbitron'; font-size: 1.5rem; color: #fff; 
+    margin-bottom: 15px; border-left: 5px solid var(--neon-purple); padding-left: 20px; 
+    text-shadow: 0 0 10px rgba(189, 0, 255, 0.5);
+    display: flex; justify-content: space-between; align-items: center;
+}
+.clear-history-btn { background:none; border:none; color:var(--neon-red); cursor:pointer; font-size:0.8rem; font-family:'Orbitron'; }
+
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding-bottom: 40px; }
+.dungeon-card {
+    background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border);
+    border-radius: 15px; padding: 20px; position: relative; cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s; transform-style: preserve-3d; overflow: hidden;
+}
+.dungeon-card:hover { border-color: var(--neon-blue); box-shadow: 0 0 30px rgba(0, 234, 255, 0.2); background: rgba(20, 20, 30, 0.8); }
+
+.card-img {
+    height: 160px; width: 100%; border-radius: 10px; background-size: cover; background-position: center;
+    margin-bottom: 15px; position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    background-color: #000;
+}
+.card-badge {
+    position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.9); color: var(--neon-gold);
+    padding: 5px 10px; border-radius: 5px; font-family: 'Orbitron'; font-size: 0.8rem; border: 1px solid var(--neon-gold);
+}
+.card-title { font-family: 'Orbitron'; font-size: 1.1rem; margin-bottom: 5px; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-meta { display: flex; gap: 15px; font-size: 0.9rem; color: #888; margin-bottom: 10px; }
+.card-meta i { color: var(--neon-blue); }
+.delete-card-btn {
+    position: absolute; top: 10px; left: 10px; background: rgba(255, 0, 0, 0.8); color: white;
+    border: none; border-radius: 5px; padding: 5px 8px; cursor: pointer; opacity: 0; transition: 0.3s;
+}
+.dungeon-card:hover .delete-card-btn { opacity: 1; }
+.empty-msg { color:#555; grid-column:1/-1; text-align:center; padding:20px; }
+
+/* MODALS */
+.system-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9); z-index: 2000;
+    display: flex; justify-content: center; align-items: center;
+    backdrop-filter: blur(5px); animation: fadeIn 0.3s ease-out;
+}
+.hidden { display: none !important; }
+
+.alert-box {
+    width: 500px; background: rgba(10, 15, 30, 0.98);
+    border: 2px solid #007bff; border-radius: 10px; overflow: hidden;
+    font-family: 'Rajdhani', sans-serif; box-shadow: 0 0 50px rgba(0, 123, 255, 0.3);
+    animation: popIn 0.4s forwards;
+}
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.alert-header { background: #007bff; color: white; padding: 15px; font-weight: bold; font-family: 'Orbitron'; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+.alert-content { padding: 25px; }
+
+.quest-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+.quest-item { 
+    display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;
+    cursor: pointer; transition: 0.3s; border: 1px solid transparent;
+}
+.quest-item:hover { background: rgba(0, 123, 255, 0.1); border-color: #007bff; }
+.quest-item.completed { background: rgba(0, 255, 0, 0.1); border-color: #00ff00; }
+.quest-item.completed span { color: #00ff00; text-decoration: line-through; }
+.quest-item input { accent-color: #007bff; transform: scale(1.3); pointer-events: none; }
+
+.alert-actions { display: flex; gap: 10px; margin-top: 25px; }
+.action-q-btn { flex: 1; padding: 15px; border: none; font-family: 'Orbitron'; font-size: 1rem; cursor: pointer; transition: 0.3s; border-radius: 5px; }
+.btn-claim { background: #333; color: #777; cursor: not-allowed; }
+.btn-claim.ready { background: #007bff; color: white; cursor: pointer; box-shadow: 0 0 20px rgba(0, 123, 255, 0.5); }
+.btn-skip { background: transparent; border: 1px solid #555; color: #aaa; }
+.btn-skip:hover { border-color: #ff3333; color: #ff3333; }
+.accept-quest-btn { padding: 10px 20px; background: transparent; border: 1px solid #333; color: white; font-family: 'Orbitron'; cursor: pointer; transition: 0.3s; }
+.accept-quest-btn:hover { background: var(--neon-purple); border-color:var(--neon-purple); }
+
+/* ROLE CHIPS (History) */
+.role-chip {
+    background: rgba(189, 0, 255, 0.1); border: 1px solid var(--neon-purple);
+    padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; color: #d0a9f5;
+    cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 5px;
+}
+.role-chip:hover { background: var(--neon-purple); color: black; }
+.delete-role { color: #ff3333; font-weight: bold; margin-left: 5px; font-size: 1rem; }
+.delete-role:hover { color: white; }
+
+/* Grimoire Cards */
+.grimoire-card {
+    background:rgba(255,255,255,0.03); border:1px solid #444; border-radius:8px; margin-bottom:15px; overflow:hidden;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #050510; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--neon-blue); }
+
+@media (max-width: 900px) {
+    .dashboard-container { flex-direction: column; overflow-y: auto; padding-left: 20px; padding-bottom: 100px; }
+    .sidebar { width: 100%; height: auto; flex-direction: row; align-items: center; gap: 20px; padding: 15px; flex-wrap: wrap; }
+    .avatar-frame { width: 80px; height: 80px; margin: 0; border-radius: 50%; }
+    .top-bar { flex-direction: column; gap: 10px; }
+    
+    /* Responsive HUD: Move to Bottom on Mobile */
+    .corner-hud {
+        width: 100%; justify-content: space-around; padding: 10px;
+        background: #050510; border-top: 1px solid #333;
+    }
+    .hud-btn { width: 100%; border-radius: 5px; border-bottom: 2px solid transparent; }
+    .hud-btn:hover { width: 100%; }
+    .hud-btn span { display: none; }
+}
+
+
+/* === ⚙️ CONFIGURATION MODAL STYLES === */
+.chip-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.reward-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #444;
+    padding: 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.reward-chip i { font-size: 2rem; margin-bottom: 10px; color: #888; transition: 0.3s; }
+.reward-chip span { font-family: 'Orbitron'; font-size: 1.1rem; color: white; letter-spacing: 1px; }
+.reward-chip small { font-family: 'Rajdhani'; color: #666; font-size: 0.9rem; }
+
+/* 🔥 HOVER EFFECT */
+.reward-chip:hover {
+    background: rgba(0, 234, 255, 0.1);
+    border-color: var(--neon-blue);
+    transform: translateY(-3px);
+}
+.reward-chip:hover i { color: var(--neon-blue); }
+
+/* 🔥 SELECTED STATE (ACTIVE) */
+.active-chip {
+    background: rgba(0, 234, 255, 0.2) !important;
+    border: 2px solid var(--neon-blue) !important;
+    box-shadow: 0 0 20px rgba(0, 234, 255, 0.3);
+}
+.active-chip i { color: white !important; filter: drop-shadow(0 0 10px var(--neon-blue)); }
+.active-chip span { color: var(--neon-blue); }
+
+
+
+
+
+
+/* === 🏆 LEADERBOARD STYLES (Map ke liye) === */
+.rank-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+}
+
+/* 🥇 Top 3 Effects */
+.rank-1 { border: 1px solid #ffd700; background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent); }
+.rank-1 .rank-num { color: #ffd700; font-size: 1.2rem; }
+
+.rank-2 { border: 1px solid #c0c0c0; }
+.rank-2 .rank-num { color: #c0c0c0; }
+
+.rank-3 { border: 1px solid #cd7f32; }
+.rank-3 .rank-num { color: #cd7f32; }
+
+.rank-info { text-align: left; flex: 1; margin-left: 15px; }
+.rank-name { display: block; font-family: 'Orbitron'; font-size: 0.9rem; color: white; }
+.rank-xp { font-family: 'Rajdhani'; font-weight: bold; color: var(--neon-blue); }
+
+
+
+/* === 🔥 HOLOGRAPHIC SIDEBAR LEADERBOARD 🔥 === */
+
+/* 1. The Container Panel (Hidden on right) */
+.leaderboard-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 450px; /* चौड़ाई */
+    height: 100vh; /* पूरी ऊंचाई */
+    z-index: 10000;
+    display: flex;
+    
+    /* Glassmorphism Effect */
+    background: rgba(10, 10, 18, 0.85); /* Dark transparent bg */
+    backdrop-filter: blur(20px); /* 🔥 The Blur Magic */
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+    
+    /* Sliding Animation Logic */
+    transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* जब बंद हो तो स्क्रीन से बाहर धक्का दे दो */
+.leaderboard-sidebar.closed {
+    transform: translateX(100%); /* 100% right me bhej do */
+}
+
+/* 2. Glowing Neon Edge (Left Side Line) */
+.neon-edge {
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--neon-blue), var(--neon-purple));
+    box-shadow: 0 0 15px var(--neon-blue);
+}
+
+/* 3. Inner Content Layout */
+.panel-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+    overflow: hidden;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 25px;
+}
+
+/* Stylish Close 'X' Button */
+.close-icon-btn {
+    background: transparent;
+    border: none;
+    color: #777;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: 0.3s;
+    padding: 5px;
+}
+.close-icon-btn:hover { color: var(--neon-red); transform: rotate(90deg); }
+
+/* 4. The Scrollable List */
+.leaderboard-list-container {
+    flex: 1; /* Baki jagah lelo */
+    overflow-y: auto; /* Scrollable */
+    padding-right: 10px;
+    position: relative;
+}
+
+/* Custom Scrollbar Styling (Nice Scroll class) */
+.nice-scroll::-webkit-scrollbar { width: 5px; }
+.nice-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+.nice-scroll::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
+
+/* === 🏆 RANK ROWS STYLING === */
+.rank-row {
+    display: flex; align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px 15px; margin-bottom: 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: 0.3s;
+}
+.rank-row:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px); /* Thoda sa hilega hover par */
+    box-shadow: 0 0 20px rgba(0, 234, 255, 0.1);
+}
+
+.rank-num { font-family: 'Orbitron'; font-weight: bold; font-size: 1.1rem; width: 40px; color: #555; }
+.rank-avatar { width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-right: 15px; color: #aaa; }
+.rank-info { flex: 1; text-align: left; }
+.rank-name { display: block; font-family: 'Rajdhani'; font-weight:bold; font-size: 1rem; color: white; }
+.rank-guild { font-size: 0.7rem; color: #777; text-transform: uppercase; }
+.rank-xp { font-family: 'Orbitron'; font-weight: bold; color: var(--neon-blue); letter-spacing: 1px; }
+
+/* 🥇🥈🥉 Top 3 Special Effects */
+.rank-1 { border: 1px solid #ffd700; background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent); }
+.rank-1 .rank-num, .rank-1 .rank-name { color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+.rank-1 .rank-avatar { color: #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+
+.rank-2 { border: 1px solid #c0c0c0; background: linear-gradient(90deg, rgba(192, 192, 192, 0.1), transparent); }
+.rank-2 .rank-num, .rank-2 .rank-name { color: #e0e0e0; }
+
+.rank-3 { border: 1px solid #cd7f32; background: linear-gradient(90deg, rgba(205, 127, 50, 0.1), transparent); }
+.rank-3 .rank-num, .rank-3 .rank-name { color: #cd7f32; }
+
+/* 📌 Sticky "YOU" Rank at Bottom */
+.my-rank-sticky {
+    position: sticky;
+    bottom: 0;
+    background: rgba(0, 10, 20, 0.95) !important; /* Darker background */
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+    margin-top: 20px;
+    z-index: 2;
+}
+/* === 🔥 LEVEL UP ANIMATION === */
+.levelup-card {
+    background: rgba(10, 15, 30, 0.95);
+    border: 2px solid var(--neon-blue);
+    padding: 30px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 0 50px rgba(0, 234, 255, 0.3);
+    width: 400px;
+    transform: scale(0.8);
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Glowing Border Effect */
+.levelup-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 5px;
+    background: var(--neon-blue);
+    box-shadow: 0 0 20px var(--neon-blue);
+}
+
+@keyframes popIn {
+    to { transform: scale(1); opacity: 1; }
+}
+
+.levelup-header h1 {
+    color: var(--neon-blue);
+    font-family: 'Orbitron';
+    letter-spacing: 2px;
+    margin: 0;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+.stat-comparison {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    font-family: 'Orbitron';
+    font-size: 1.5rem;
+    margin: 20px 0;
+}
+
+.stat-new { color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); }
+.stat-old { color: #555; }
+.arrow { color: white; }
+
+.rewards-grid {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.reward-item {
+    background: rgba(255,255,255,0.05);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-family: 'Rajdhani';
+    font-weight: bold;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 🔥 GUILD BUTTON STYLE */
+.gold-tech {
+    border: 1px solid #FFD700; /* Gold Border */
+    color: #FFD700;            /* Gold Text */
+    background: rgba(255, 215, 0, 0.05);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.gold-tech:hover {
+    background: rgba(255, 215, 0, 0.15);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+    transform: translateY(-2px);
+    text-shadow: 0 0 5px #FFD700;
+}
+
+.gold-tech i {
+    margin-right: 5px;
+}
+
+/* Overlay Fix (Agar wo chupa hua hai) */
+#guild-overlay {
+    z-index: 9999; /* Sabse upar dikhega */
+}
+
+/* === 🏆 LEGENDARY GUILD BUTTON (Bottom Right) === */
+.guild-floater {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    
+    /* Shape & Size */
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(145deg, #1a1a1a, #000);
+    border: 2px solid #FFD700; /* Gold Border */
+    border-radius: 50%;        /* Circle Shape */
+    
+    /* Flexbox for Center Alignment */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    /* Shadow & Cursor */
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Icon Style */
+.guild-floater i {
+    font-size: 1.8rem;
+    color: #FFD700;
+    margin-bottom: 2px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+/* Text Style */
+.guild-label {
+    font-size: 0.6rem;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 1px;
+    color: white;
+    font-weight: bold;
+}
+
+/* 🔥 Glow Animation Effect behind button */
+.guild-glow {
+    position: absolute;
+    top: -5px; left: -5px; right: -5px; bottom: -5px;
+    border-radius: 50%;
+    border: 1px dashed rgba(255, 215, 0, 0.5);
+    animation: spinSlow 10s linear infinite;
+    pointer-events: none;
+}
+
+/* ✨ HOVER EFFECTS (Jadoo) */
+.guild-floater:hover {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), inset 0 0 20px rgba(255, 215, 0, 0.2);
+    border-color: #fff;
+}
+
+.guild-floater:hover i {
+    color: #fff;
+    transform: rotate(15deg);
+}
+
+.guild-floater:active {
+    transform: scale(0.95);
+}
+
+/* Rotate Animation for the Ring */
+@keyframes spinSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Mobile Responsive Fix */
+@media (max-width: 768px) {
+    .guild-floater {
+        width: 60px;
+        height: 60px;
+        bottom: 20px;
+        right: 20px;
+    }
+    .guild-floater i { font-size: 1.4rem; }
+    .guild-label { font-size: 0.5rem; }
+}
