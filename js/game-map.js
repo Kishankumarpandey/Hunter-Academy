@@ -93,27 +93,80 @@ window.closeLevelUp = function() {
 // 🔥 4. DUNGEON HISTORY SYSTEM
 // =============================================================
 
-async function enterGate() {
-    const url = document.getElementById('dashboard-url').value;
-    if (!url) return alert("⚠️ SYSTEM ERROR: KEYSTONE MISSING (Paste URL)");
+// js/game-map.js
 
-    // 1. Fetch Video Info (Async)
-    let title = "Unknown Dungeon";
-    let thumb = "assets/images/default-dungeon.jpg"; 
+async function enterGate() {
+    const urlInput = document.getElementById('dashboard-url');
+    const url = urlInput.value.trim();
+    const btn = document.querySelector('.enter-btn');
+
+    // 1. Validation
+    if (!url) return alert("⚠️ SYSTEM ERROR: KEYSTONE MISSING (Please paste a YouTube URL)");
+
+    // 2. Button Loading State (Visual Feedback)
+    const originalText = btn.innerText;
+    btn.innerText = "⏳ OPENING GATE...";
+    btn.disabled = true;
+    btn.style.opacity = "0.7";
 
     try {
-        const res = await fetch(`https://noembed.com/embed?url=${url}`);
+        console.log("📡 Contacting Server for Dungeon Data...");
+
+        // 3. Server Request
+        const res = await fetch('/generate-dungeon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoUrl: url })
+        });
+
         const data = await res.json();
-        if(data.title) title = data.title;
-        if(data.thumbnail_url) thumb = data.thumbnail_url;
-    } catch (err) { console.log("Meta fetch failed"); }
 
-    // 2. Save to LocalStorage
-    const newEntry = { url, title, thumb, timestamp: Date.now() };
-    saveHistory(newEntry);
+        if (!res.ok) {
+            throw new Error(data.error || "Server rejected the key.");
+        }
 
-    // 3. Start Mission
-    startMission(url);
+        console.log("✅ Dungeon Generated:", data);
+
+        // 4. Save Data to LocalStorage (Game isme se padhega)
+        localStorage.setItem('dungeon_data', JSON.stringify(data));
+        localStorage.setItem('mission_url', url); // For Resume
+
+        // Save to History
+        saveHistory({
+            url: url,
+            title: data.summary[0] || "Unknown Dungeon", // Pehla point as title
+            thumb: `https://img.youtube.com/vi/${getYouTubeID(url)}/mqdefault.jpg`,
+            timestamp: Date.now()
+        });
+
+        // 5. Animation & Redirect
+        btn.innerText = "GATE OPEN!";
+        btn.style.background = "#00ff00"; // Green Success
+        
+        document.body.style.transition = "opacity 0.5s";
+        document.body.style.opacity = "0";
+
+        setTimeout(() => {
+            window.location.href = 'study-game.html'; // 👈 Yahan Game page par bhej rahe hain
+        }, 800);
+
+    } catch (error) {
+        console.error("❌ Gate Error:", error);
+        alert(`🚫 GATE BLOCKED: ${error.message}\n(Make sure 'node server.js' is running)`);
+        
+        // Reset Button
+        btn.innerText = originalText;
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.style.background = "";
+    }
+}
+
+// Helper to get YouTube ID for Thumbnail
+function getYouTubeID(url) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
 }
 
 function saveHistory(newEntry) {
