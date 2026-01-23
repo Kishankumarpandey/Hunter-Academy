@@ -1,0 +1,85 @@
+:root {
+    --neon-blue: #00eaff;
+    --neon-purple: #bd00ff;
+    --neon-red: #ff3333;
+    --dark-bg: #050a14;
+}
+
+body {
+    background-color: var(--dark-bg);
+    color: white;
+    font-family: 'Rajdhani', sans-serif;
+    text-align: center;
+}
+
+.lab-container { max-width: 900px; margin: 50px auto; }
+
+.start-btn {
+    background: var(--neon-blue);
+    border: none;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+#game-arena { margin-top: 30px; }
+.hidden { display: none; }
+
+.playground {
+    display: flex;
+    justify-content: space-between;
+    gap: 50px;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+}
+
+/* CARDS STYLE */
+.rune-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 1.1rem;
+}
+
+.rune-card:hover {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+.term { text-align: right; border-right: 4px solid #555; }
+.def { text-align: left; border-left: 4px solid #555; }
+
+/* STATES */
+.selected {
+    background: rgba(0, 234, 255, 0.2);
+    border-color: var(--neon-blue);
+    transform: scale(1.05);
+}
+
+.error {
+    background: rgba(255, 51, 51, 0.3);
+    border-color: var(--neon-red);
+    animation: shake 0.3s;
+}
+
+.matched {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+}

@@ -1,4 +1,3 @@
-
 import { syncXPToCloud } from "./hunter-db.js";
 
 // --- STATE VARIABLES ---
@@ -12,10 +11,11 @@ let checkInterval;
 let isManual = false;
 let correctAnswers = 0; 
 let totalAnswered = 0; 
+let isQuizSystemOnline = true; 
 
-// 🔥 NEW: SESSION STATE (Anti-Cheat System)
-let sessionXP = 0; // Ye Temporary XP hai (Save nahi hoga jab tak complete na ho)
-let isDungeonCleared = false; // Video finish flag
+// Session State
+let sessionXP = 0; 
+let isDungeonCleared = false; 
 
 // Variables for Grimoire & Quests
 let currentNoteData = null; 
@@ -33,13 +33,62 @@ window.onload = function() {
         const urlInput = document.getElementById('yt-url');
         if (urlInput) {
             urlInput.value = savedUrl;
-            if (typeof scanGateKey === 'function') {
-                scanGateKey();
-            }
+            setTimeout(() => {
+                if (typeof scanGateKey === 'function') scanGateKey();
+            }, 500);
         }
     }
 };
 
+// --- HELPER: FORMAT AI TEXT (DIAGRAMS) ---
+function formatAIContent(text) {
+    if (!text) return "";
+
+    // 1️⃣ Convert **** text **** → [Image of text]
+    let formattedText = text.replace(
+        /\*\*\*\*(.*?)\*\*\*\*/g,
+        '[Image of $1]'
+    );
+
+    // 2️⃣ Remove bold visual hints (**waveform**, **diagram**, **circuit**)
+    formattedText = formattedText.replace(/\*\*(.*? waveform.*?)\*\*/gi, '');
+    formattedText = formattedText.replace(/\*\*(.*? diagram.*?)\*\*/gi, '');
+    formattedText = formattedText.replace(/\*\*(.*? circuit.*?)\*\*/gi, '');
+
+    // 3️⃣ Match [Image of X] correctly
+    const regex = /\[Image of (.*?)\]/g;
+
+    return formattedText.replace(regex, function (_, query) {
+        const cleanQuery = query.replace(/[:.]/g, "").trim();
+
+        return `
+        <div class="diagram-placeholder"
+             style="margin:10px 0; padding:15px;
+             border:1px dashed var(--neon-blue);
+             background:rgba(0,234,255,0.05);
+             border-radius:8px; text-align:center;">
+
+            <i class="fas fa-image"
+               style="font-size:1.5rem; color:var(--neon-blue);"></i>
+
+            <div style="color:#aaa; font-size:0.8rem;">
+                VISUALIZATION REQUESTED
+            </div>
+
+            <strong style="color:white;">${cleanQuery}</strong>
+            <br>
+
+            <a href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(cleanQuery)}"
+               target="_blank"
+               style="color:var(--neon-gold);
+               font-size:0.7rem; text-decoration:none;">
+                [ CLICK TO VIEW REFERENCE ]
+            </a>
+        </div>`;
+    });
+}
+
+    
 // --- HELPER: GET VIDEO TITLE ---
 async function getVideoTitle(videoUrl) {
     try {
@@ -52,7 +101,7 @@ async function getVideoTitle(videoUrl) {
 }
 
 // --- MANUAL MODE TOGGLE ---
-function toggleManual() {
+window.toggleManual = function() {
     isManual = !isManual;
     const container = document.getElementById('manual-container');
     const btn = document.getElementById('toggle-btn');
@@ -73,7 +122,7 @@ function toggleManual() {
 }
 
 // --- INIT DUNGEON ---
-async function initDungeon() {
+window.initDungeon = async function() {
     const url = document.getElementById('yt-url').value;
     const text = document.getElementById('manual-text') ? document.getElementById('manual-text').value : "";
 
@@ -87,7 +136,8 @@ async function initDungeon() {
     try {
         const payload = isManual ? { transcriptText: text } : { videoUrl: url };
 
-        const res = await fetch('/generate-dungeon', {
+        // Server Request
+        const res = await fetch('http://localhost:3001/generate-dungeon', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -96,22 +146,33 @@ async function initDungeon() {
         if (!res.ok) throw new Error("Server Error");
         const rawText = await res.text();
         const data = JSON.parse(rawText);
+        
         if (data.error) throw new Error(data.error);
 
-        quizData = data.questions;
-        summaryData = data.summary;
+        console.log("SERVER DATA RECEIVED:", data);
+
+        quizData = data.questions || [];
+        summaryData = data.summary || [];
+
+        // Check if Quiz Data exists
+        if (quizData.length === 0) {
+            console.warn("⚠️ No Quiz Questions generated.");
+            alert("System Message: AI could not generate questions. Using Video Only Mode.");
+        } else {
+            console.log(`✅ ${quizData.length} Questions Loaded!`);
+        }
 
         if (summaryData) {
             const summaryLog = document.getElementById('summary-log');
             if (summaryLog) {
-                summaryLog.innerHTML = `<strong>MISSION OBJECTIVES:</strong><br> ${summaryData.map(s => `> ${s}`).join('<br>')}`;
+                const formattedSummary = summaryData.map(s => `> ${formatAIContent(s)}`).join('<br>');
+                summaryLog.innerHTML = `<strong>MISSION OBJECTIVES:</strong><br> ${formattedSummary}`;
             }
         }
 
         const videoId = extractVideoID(url);
         loadVideo(videoId);
 
-        // Auto Scroll
         setTimeout(() => {
             const questSection = document.getElementById('quest-section');
             if (questSection) {
@@ -128,12 +189,13 @@ async function initDungeon() {
 }
 
 function extractVideoID(url) {
+    if(!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
 }
 
-function goFullScreen() {
+window.goFullScreen = function() {
     var elem = document.getElementById("master-container"); 
     if (elem.requestFullscreen) elem.requestFullscreen();
     else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
@@ -144,6 +206,11 @@ function goFullScreen() {
 function loadVideo(vidId) {
     document.getElementById('loading-screen').classList.add('hidden');
     document.getElementById('game-screen').style.display = 'block';
+
+    if (!window.YT) {
+        setTimeout(() => loadVideo(vidId), 1000);
+        return;
+    }
 
     player = new YT.Player('player', {
         height: '100%',
@@ -158,42 +225,40 @@ function loadVideo(vidId) {
         },
         events: { 
             'onReady': onPlayerReady, 
-            'onStateChange': onPlayerStateChange // 🔥 Important State Listener
+            'onStateChange': onPlayerStateChange 
         }
     });
 }
 
 function onPlayerReady(event) {
-    nextTriggerTime = 10;
+    // 🔥 UPDATE: Timer set to 10 seconds for faster testing
+    nextTriggerTime = 10; 
     currentQIndex = 0;
     if (window.audioSys) audioSys.startBGM();
+    console.log("Player Ready. First Quiz set for: " + nextTriggerTime + "s");
 }
 
-// 🔥 CORE LOGIC: DETECT VIDEO END & UNLOCK REWARD
 function onPlayerStateChange(event) {
-    // 1 = Playing
     if (event.data == YT.PlayerState.PLAYING) {
         checkInterval = setInterval(checkTime, 1000);
     } else {
         clearInterval(checkInterval);
     }
 
-    // 🔥 0 = ENDED (Video khatam hua)
     if (event.data == YT.PlayerState.ENDED) {
         unlockDungeonCompletion();
     }
 }
 
-// 🔥 BUTTON UNLOCKER
 function unlockDungeonCompletion() {
-    if (isDungeonCleared) return; // Already unlocked
+    if (isDungeonCleared) return; 
     
     isDungeonCleared = true;
     console.log("DUNGEON CLEARED! UNLOCKING EXIT...");
     
     const btn = document.querySelector('.complete-btn');
     if (btn) {
-        btn.classList.add('unlocked'); // CSS se display:block hoga
+        btn.classList.add('unlocked');
         if (window.audioSys) audioSys.play('success');
     }
 }
@@ -202,12 +267,19 @@ function checkTime() {
     if (isQuizActive) return;
     if (!isQuizSystemOnline) return; 
 
-    const currentTime = player.getCurrentTime();
-    if (currentTime >= nextTriggerTime && currentQIndex < quizData.length) {
-        triggerQuiz(quizData[currentQIndex]);
+    if(player && player.getCurrentTime) {
+        const currentTime = player.getCurrentTime();
+        
+        // 🔥 UPDATE: Safe Check added here
+        if (quizData && quizData.length > 0 && 
+            currentTime >= nextTriggerTime && 
+            currentQIndex < quizData.length) {
+            
+            console.log("Triggering Quiz #" + (currentQIndex + 1));
+            triggerQuiz(quizData[currentQIndex]);
+        }
     }
 }
-
 // --- QUIZ LOGIC ---
 function triggerQuiz(question) {
     isQuizActive = true;
@@ -265,17 +337,17 @@ function showGift() {
 window.resumeVideo = function() {
     document.getElementById('quiz-overlay').style.display = 'none';
     isQuizActive = false;
-    nextTriggerTime = player.getCurrentTime() + 30; 
+    nextTriggerTime = player.getCurrentTime() + 60; 
     currentQIndex++;
     player.playVideo();
     if (window.audioSys) audioSys.startBGM();
 }
 
 // =============================================================
-// 🔥 1. GRIMOIRE SYSTEM (FULL CODE) 🔥
+// 🔥 GRIMOIRE SYSTEM 🔥
 // =============================================================
 
-async function extractNotes() {
+window.extractNotes = async function() {
     document.getElementById('project-list').innerHTML = '';
     document.getElementById('project-loading').classList.add('hidden');
     
@@ -292,7 +364,7 @@ async function extractNotes() {
     if(isManual) topic = document.getElementById('manual-text').value.substring(0, 200);
 
     try {
-        const res = await fetch('/generate-notes', {
+        const res = await fetch('http://localhost:3001/generate-notes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ videoUrl: url, topic: topic })
@@ -303,14 +375,16 @@ async function extractNotes() {
 
         document.getElementById('note-title').innerText = data.title || "Extracted Intel";
         
-        list.innerHTML = `<p style="color:#aaa; font-style:italic; margin-bottom:15px; border-left:3px solid var(--neon-purple); padding-left:10px;">${data.summary}</p>`;
+        list.innerHTML = `<p style="color:#aaa; font-style:italic; margin-bottom:15px; border-left:3px solid var(--neon-purple); padding-left:10px;">${formatAIContent(data.summary)}</p>`;
         
         if(data.sections) {
             data.sections.forEach(sec => {
                 list.innerHTML += `
                     <div style="margin-bottom:15px;">
                         <strong style="color:var(--neon-blue); display:block; margin-bottom:5px;">${sec.heading}</strong>
-                        <div style="color:#ddd; font-size:0.95rem; background:rgba(255,255,255,0.05); padding:10px; border-radius:5px;">${sec.content}</div>
+                        <div style="color:#ddd; font-size:0.95rem; background:rgba(255,255,255,0.05); padding:10px; border-radius:5px;">
+                            ${formatAIContent(sec.content)}
+                        </div>
                     </div>
                 `;
             });
@@ -319,7 +393,7 @@ async function extractNotes() {
         if (data.keyTakeaways) {
             list.innerHTML += `<div style="border-top:1px dashed #444; padding-top:10px; margin-top:10px;"><strong style="color:var(--neon-gold)">⚡ KEY INTEL:</strong></div>`;
             data.keyTakeaways.forEach(pt => {
-                list.innerHTML += `<li style="color:#ccc; margin-top:5px; margin-left:15px;">${pt}</li>`;
+                list.innerHTML += `<li style="color:#ccc; margin-top:5px; margin-left:15px;">${formatAIContent(pt)}</li>`;
             });
         }
 
@@ -336,7 +410,7 @@ async function extractNotes() {
     }
 }
 
-function saveCurrentNote() {
+window.saveCurrentNote = function() {
     if(!currentNoteData) return alert("No note to save!");
 
     let grimoire = JSON.parse(localStorage.getItem('saved_notes')) || [];
@@ -364,7 +438,7 @@ function saveCurrentNote() {
     if(window.audioSys) audioSys.play('success');
 }
 
-function openGrimoire() {
+window.openGrimoire = function() {
     const modal = document.getElementById('grimoire-overlay');
     const container = document.getElementById('grimoire-list');
     const grimoire = JSON.parse(localStorage.getItem('saved_notes')) || [];
@@ -394,7 +468,7 @@ function openGrimoire() {
     modal.style.display = 'flex';
 }
 
-function loadSavedNote(index) {
+window.loadSavedNote = function(index) {
     const grimoire = JSON.parse(localStorage.getItem('saved_notes'));
     const note = grimoire[index].data;
     
@@ -402,17 +476,17 @@ function loadSavedNote(index) {
     
     document.getElementById('note-title').innerText = note.title;
     const list = document.getElementById('note-points');
-    list.innerHTML = `<p style="color:#aaa; font-style:italic;">${note.summary}</p>`;
+    list.innerHTML = `<p style="color:#aaa; font-style:italic;">${formatAIContent(note.summary)}</p>`;
     
     note.sections.forEach(sec => {
-        list.innerHTML += `<div><strong style="color:var(--neon-blue)">${sec.heading}</strong><br>${sec.content}</div><br>`;
+        list.innerHTML += `<div><strong style="color:var(--neon-blue)">${sec.heading}</strong><br>${formatAIContent(sec.content)}</div><br>`;
     });
     
     document.getElementById('shadow-note-card').classList.remove('hidden');
     document.getElementById('save-note-btn').style.display = 'none'; 
 }
 
-function deleteNote(index) {
+window.deleteNote = function(index) {
     let grimoire = JSON.parse(localStorage.getItem('saved_notes'));
     grimoire.splice(index, 1);
     localStorage.setItem('saved_notes', JSON.stringify(grimoire));
@@ -420,10 +494,10 @@ function deleteNote(index) {
 }
 
 // =============================================================
-// 🔥 2. QUEST SYSTEM (FULL CODE) 🔥
+// 🔥 QUEST SYSTEM 🔥
 // =============================================================
 
-async function fetchProjects() {
+window.fetchProjects = async function() {
     document.getElementById('shadow-note-card').classList.add('hidden');
     document.getElementById('system-loading').classList.add('hidden');
     const list = document.getElementById('project-list');
@@ -443,7 +517,7 @@ async function fetchProjects() {
     }
 
     try {
-        const res = await fetch('/generate-projects', {
+        const res = await fetch('http://localhost:3001/generate-projects', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ topic: topic })
@@ -488,7 +562,7 @@ function renderProjects(projects) {
     });
 }
 
-function acceptQuest(index) {
+window.acceptQuest = function(index) {
     const quest = currentGeneratedProjects[index];
     const btn = document.getElementById(`btn-quest-${index}`);
 
@@ -515,7 +589,7 @@ function acceptQuest(index) {
 }
 
 // --- SUMMON & SCANNER ---
-async function summonShadow() {
+window.summonShadow = async function() {
     const overlay = document.getElementById('summon-overlay');
     if (window.audioSys) audioSys.play('success');
     overlay.classList.remove('hidden');
@@ -528,8 +602,9 @@ async function summonShadow() {
 }
 
 let searchTimeout;
-async function scanGateKey() {
-    const url = document.getElementById('yt-url').value;
+window.scanGateKey = async function() {
+    const urlInput = document.getElementById('yt-url');
+    const url = urlInput ? urlInput.value : "";
     const statusDiv = document.getElementById('scan-status');
     const previewDiv = document.getElementById('gate-preview');
     const btn = document.getElementById('open-gate-btn');
@@ -568,7 +643,7 @@ async function scanGateKey() {
     }, 800);
 }
 
-async function pasteFromClipboard() {
+window.pasteFromClipboard = async function() {
     try {
         const text = await navigator.clipboard.readText();
         document.getElementById('yt-url').value = text;
@@ -579,13 +654,12 @@ async function pasteFromClipboard() {
 }
 
 // --- EXIT & TOGGLES ---
-function exitDungeon() {
+window.exitDungeon = function() {
     document.body.style.overflow = 'auto';
     window.location.href = 'game-map.html';
 }
 
-// 🔥 RETREAT LOGIC (Anti-Cheat Warning)
-function returnToLobby() {
+window.returnToLobby = function() {
     if (sessionXP > 0) {
         if(confirm(`⚠️ WARNING: GATE CLOSING!\n\nYou have ${sessionXP} Unsaved XP.\nLeaving now will destroy these rewards.\n\nRetreat anyway?`)) {
             window.location.href = 'game-map.html';
@@ -595,9 +669,7 @@ function returnToLobby() {
     }
 }
 
-// --- QUIZ TOGGLE ---
-let isQuizSystemOnline = true; 
-function toggleQuizSystem() {
+window.toggleQuizSystem = function() {
     isQuizSystemOnline = !isQuizSystemOnline;
     const btn = document.getElementById('quiz-toggle-btn');
     if(isQuizSystemOnline) {
@@ -616,46 +688,44 @@ function toggleQuizSystem() {
 }
 
 // =============================================================
-// 🔥 DYNAMIC REWARD SYSTEM (SESSION XP & DISPLAY FIX) 🔥
+// 🔥 DYNAMIC REWARD SYSTEM 🔥
 // =============================================================
 
 const REWARD_DATABASE = {
-    'kings': [ 'assets/videos/kings_1.mp4', 'assets/videos/kings_2.mp4', 'assets/videos/kings_3.mp4' ],
-    'recovery': [ 'assets/videos/recovery_1.mp4', 'assets/videos/recovery_2.mp4', 'assets/videos/recovery_3.mp4' ]
+    'kings': [ 'assets/videos/kings_1.mp4', 'assets/videos/kings_2.mp4', 'assets/videos/kings_3.mp4' , 'assets/videos/kings_4.mp4 ', 'assets/videos/kings_5.mp4' , 'assets/videos/kings_6.mp4' ],
+    'recovery': [ 'assets/videos/recovery_1.mp4', 'assets/videos/recovery_2.mp4', 'assets/videos/recovery_3.mp4' , 'assets/videos/recovery_4.mp4' ]
 };
 
-function claimReward() {
-    // 1. Hide Gift Overlay
+window.claimReward = function() {
     const giftOverlay = document.getElementById('gift-overlay');
     giftOverlay.classList.add('hidden');
     giftOverlay.style.display = 'none';
     
-    // 2. 🔥 ADD TO SESSION XP (NOT LOCALSTORAGE)
     sessionXP += 50;
     console.log(`System: +50 XP Added to Buffer (Total: ${sessionXP})`);
 
-    // 3. Select Video
     const userPref = localStorage.getItem('hunterRewardType') || 'kings';
     const videoList = REWARD_DATABASE[userPref] || REWARD_DATABASE['kings'];
     const randomIndex = Math.floor(Math.random() * videoList.length);
     const selectedVideo = videoList[randomIndex];
 
-    // 4. Play Video
     const videoEl = document.getElementById('reward-video');
     const sourceEl = videoEl.querySelector('source');
-    if (sourceEl) sourceEl.src = selectedVideo; else videoEl.src = selectedVideo;
+    
+    if (sourceEl) sourceEl.src = selectedVideo; 
+    else videoEl.src = selectedVideo;
 
     videoEl.load();
     const rewardOverlay = document.getElementById('reward-overlay');
     rewardOverlay.classList.remove('hidden');
-    rewardOverlay.style.display = 'block'; // Force visibility
+    rewardOverlay.style.display = 'block'; 
     
     if (window.audioSys && window.audioSys.sounds.bgm) audioSys.sounds.bgm.pause();
     videoEl.play().catch(e => console.log("Audio permission needed:", e));
     videoEl.onended = function() { closeReward(); };
 }
 
-function closeReward() {
+window.closeReward = function() {
     const videoEl = document.getElementById('reward-video');
     videoEl.pause();
     videoEl.currentTime = 0;
@@ -669,8 +739,7 @@ function closeReward() {
 }
 
 // 🔥 FINISH DUNGEON (COMMIT SESSION XP)
-function finishDungeon() {
-    // Extra Check: Video khatam hua ya nahi?
+window.finishDungeon = function() {
     if (!isDungeonCleared) {
         alert("⚠️ DUNGEON BOSS IS STILL ALIVE! (Finish the video first)");
         return;
@@ -680,9 +749,8 @@ function finishDungeon() {
     const rankEl = document.getElementById('final-rank');
 
     let accuracy = quizData.length > 0 ? Math.round((correctAnswers / quizData.length) * 100) : 100;
-    if (quizData.length === 0 && correctAnswers === 0) accuracy = 50; 
+    if (quizData.length === 0 && correctAnswers === 0) accuracy = 100;
 
-    // Rank Calculation
     let rank = 'E';
     let rankXP = 100;
 
@@ -692,21 +760,17 @@ function finishDungeon() {
     else if (accuracy >= 30) { rank = 'C'; rankXP = 200; rankEl.className = 'rank-stamp rank-c'; }
     else { rank = 'E'; rankXP = 50; rankEl.className = 'rank-stamp rank-e'; }
 
-   
-
-    // 🔥 SAVE EVERYTHING NOW (Session + Rank XP)
+    // 🔥 SAVE EVERYTHING NOW
     let totalEarned = sessionXP + rankXP;
     
-    // 1. Local Save (Backup)
+    // 1. Local Save
     let currentPending = parseInt(localStorage.getItem('add_xp') || "0");
-    localStorage.setItem('add_xp', currentPending + totalEarned);
+    localStorage.setItem('add_xp', currentPending + totalEarned); 
 
-    // 2. 🔥 CLOUD SAVE (Database)
-    // Ye function data ko Firebase bhej dega
+    // 2. Cloud Save
     syncXPToCloud(totalEarned); 
 
     document.getElementById('final-accuracy').innerText = accuracy + "%";
-// ... baki code same ...
     document.getElementById('final-xp').innerText = "+" + totalEarned + " XP";
     rankEl.innerText = rank;
 
@@ -716,4 +780,42 @@ function finishDungeon() {
         document.body.style.overflow = 'hidden';
         if (window.audioSys) audioSys.play('levelUp');
     }
+}
+
+
+// --- GUILD ACTIONS ---
+
+// 1. दोस्त की गिल्ड जॉइन करने का फंक्शन
+window.joinFriendGuild = function() {
+    const codeInput = document.getElementById('friend-code-input');
+    const code = codeInput.value.trim();
+
+    if (!code) {
+        alert("Please paste a valid invite code!");
+        return;
+    }
+
+    // यहाँ पर वह लॉजिक आएगा जो सर्वर से चेक करेगा कि कोड सही है या नहीं।
+    // अभी के लिए हम बस एक अलर्ट दिखा रहे हैं।
+    console.log("Joining guild with code:", code);
+    alert(`Attempting to join guild: ${code}\n(Backend logic required here)`);
+
+    // सफल होने पर, इनपुट बॉक्स खाली करें
+    codeInput.value = "";
+}
+
+// 2. वापस जाने (Back) का फंक्शन
+window.goBackFromGuild = function() {
+    // इस फंक्शन से आप तय कर सकते हैं कि "Back" बटन दबाने पर क्या होगा।
+    // उदाहरण के लिए, यह मौजूदा पॉप-अप को बंद करके कोई पिछला मेनू खोल सकता है।
+    // अभी के लिए, हम इसे सिर्फ बंद कर रहे हैं (CLOSE बटन जैसा)।
+    closeModal('guild-modal');
+
+    // अगर आपके पास कोई 'Main Menu' पॉप-अप है, तो आप उसे यहाँ खोल सकते हैं:
+    // openModal('main-menu-modal');
+}
+
+// --- HELPER: CLOSE MODAL (अगर पहले से नहीं है) ---
+window.closeModal = function(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
 }

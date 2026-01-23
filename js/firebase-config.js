@@ -10,12 +10,13 @@ import {
     doc, 
     setDoc, 
     getDoc, 
-    getDocs,        // 👈 YE MISSING THA (Ab add kar diya)
+    getDocs,        
     updateDoc, 
     increment, 
     onSnapshot,
     addDoc, 
     arrayUnion,
+    arrayRemove, // 👈 🔥 NEW ADDITION (Leave Guild ke liye zaroori hai)
     collection, 
     query, 
     orderBy, 
@@ -57,8 +58,8 @@ console.log("🔥 SYSTEM ONLINE: Database, Auth & Guild Protocols Ready");
 export { 
     app, db, auth, provider,
     // Database Functions
-    doc, setDoc, getDoc, getDocs, updateDoc, increment, onSnapshot, // 👈 getDocs yahan bhi add kiya
-    addDoc, arrayUnion,
+    doc, setDoc, getDoc, getDocs, updateDoc, increment, onSnapshot, 
+    addDoc, arrayUnion, arrayRemove, // 👈 🔥 EXPORTED HERE
     collection, query, orderBy, limit, where, getCountFromServer,
     // Auth Functions
     onAuthStateChanged, signInWithPopup, signOut, GoogleAuthProvider

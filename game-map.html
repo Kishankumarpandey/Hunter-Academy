@@ -152,28 +152,50 @@
     </div>
 
     <div id="roadmap-overlay" class="system-overlay hidden">
-        <div class="alert-box" style="width: 700px; border-color: var(--neon-purple); max-height:80vh; display:flex; flex-direction:column;">
-            <div class="alert-header" style="background: var(--neon-purple);"><i class="fas fa-compass"></i> THE ORACLE'S PATH</div>
-            <div class="alert-content" style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
-                <p>What implies your destiny? (e.g., Data Scientist, Game Dev)</p>
+    <div class="alert-box" style="width: 800px; border-color: var(--neon-purple); height:85vh; display:flex; flex-direction:column;">
+        
+        <div class="alert-header" style="background: var(--neon-purple); display:flex; justify-content:space-between; align-items:center;">
+            <span><i class="fas fa-compass"></i> THE ORACLE'S PATH</span>
+            <span style="font-size:0.7rem; opacity:0.8;">DATABASE: CONNECTED</span>
+        </div>
+
+        <div class="alert-content" style="flex:1; overflow:hidden; display:flex; flex-direction:column; background:#050505;">
+            
+            <div style="padding: 20px; border-bottom: 1px solid #222;">
+                <p style="color:#aaa; margin-bottom:10px;">Determine your destiny path (e.g., DevOps Engineer, AI Researcher)</p>
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="role-input" class="url-input" placeholder="Enter Job Role..." style="margin:0; text-align:left;">
-                    <button class="accept-quest-btn" style="width:auto; background:var(--neon-purple); border-color:var(--neon-purple);" onclick="fetchRoadmap()">GENERATE</button>
+                    <input type="text" id="role-input" class="url-input" placeholder="Enter Job Role..." style="margin:0;">
+                    <button class="accept-quest-btn" style="width:auto; background:var(--neon-purple); border-color:var(--neon-purple);" onclick="fetchRoadmap()">
+                        GENERATE PATH
+                    </button>
                 </div>
-                <div id="role-history-container" style="margin-top:15px; display:flex; flex-wrap:wrap; gap:10px;"></div>
-                <div id="roadmap-loading" class="hidden" style="margin-top:20px; text-align:center; color:var(--neon-purple);"><i class="fas fa-magic fa-spin"></i> CALCULATING PATH...</div>
-                <div id="roadmap-steps" style="margin-top:20px; overflow-y:auto; flex:1; text-align:left; padding-right:10px;"></div>
+                
+                <div style="margin-top: 15px;">
+                    <small style="color:#555; display:block; margin-bottom:5px;">PREVIOUS SIMULATIONS:</small>
+                    <div id="role-history-container" style="display:flex; flex-wrap:wrap; gap:8px;">
+                        </div>
+                </div>
             </div>
-            <div style="padding:15px; border-top:1px solid #333;">
-                <button class="accept-quest-btn" style="width:100%;" onclick="document.getElementById('roadmap-overlay').style.display='none'">CLOSE ORACLE</button>
+
+            <div id="roadmap-steps" class="nice-scroll" style="flex:1; overflow-y:auto; padding:20px; display:block; text-align:left;">
+     </div>
+            <div id="roadmap-loading" class="hidden" style="text-align:center; padding:50px; color:var(--neon-purple);">
+                <i class="fas fa-circle-notch fa-spin fa-3x"></i><br><br>
+                ANALYZING SKILL TREES...
             </div>
+
+        </div>
+
+        <div style="padding:15px; border-top:1px solid #333; text-align:right;">
+            <button class="accept-quest-btn" style="width:auto;" onclick="document.getElementById('roadmap-overlay').style.display='none'">CLOSE ORACLE</button>
         </div>
     </div>
+</div>
 
     <div id="grimoire-overlay" class="system-overlay hidden">
         <div class="alert-box" style="width: 700px; border-color: var(--neon-gold); max-height:85vh; display:flex; flex-direction:column;">
             <div class="alert-header" style="background: rgba(255, 215, 0, 0.1); color: var(--neon-gold); border-bottom: 1px solid var(--neon-gold);">
-                <i class="fas fa-book-journal-whills"></i> HUNTER'S GRIMOIRE (SAVED INTEL)
+                <i class="fas fa-book-journal-whills"></i> HUNTER'S GRIMOIRE (NOTES SAVED INTEL)
             </div>
             <div id="grimoire-content" style="flex:1; overflow-y: auto; padding: 20px; text-align: left;"></div>
             <div style="padding:15px; border-top:1px solid #333; display:flex; justify-content:flex-end;">
@@ -294,59 +316,61 @@
         <span class="guild-label">GUILD</span>
     </div>
 </div>
-<div id="guild-overlay" class="system-overlay hidden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
-    <div class="alert-box" style="width: 700px; border-color: var(--neon-gold); background:#0a0f1e; border: 1px solid #FFD700; padding:0;">
+<div id="guild-modal" class="system-overlay hidden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
+    <div class="alert-box" style="width: 700px; border-color: var(--neon-gold); background:#0a0f1e; border: 1px solid #FFD700; padding:0; display:flex; flex-direction:column;">
         
-        <div class="alert-header" style="background: rgba(255, 215, 0, 0.1); color: var(--neon-gold); padding:15px; border-bottom:1px solid #FFD700; font-family:'Orbitron';">
-            <i class="fas fa-dungeon"></i> HUNTER GUILD ASSOCIATION
+        <div class="alert-header" style="background: rgba(255, 215, 0, 0.1); color: var(--neon-gold); padding:15px; border-bottom:1px solid #FFD700; font-family:'Orbitron'; display:flex; justify-content:space-between; align-items:center;">
+            <span><i class="fas fa-dungeon"></i> HUNTER GUILD ASSOCIATION</span>
+            <button onclick="closeGuildInterface()" style="background:none; border:none; color:#FFD700; cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
         </div>
 
-        <div class="guild-content" style="padding: 30px; display: flex; gap: 20px;">
+        <div id="guild-main-content" style="padding: 30px;">
             
-            <div style="flex: 1; border-right: 1px solid #333; padding-right: 20px;">
-                <h3 style="color:white; font-family:'Orbitron'; margin-top:0;">JOIN A GUILD</h3>
-                <p style="color:#aaa; font-size:0.9rem;">Enter an invite code to join an existing guild.</p>
-                
-                <input type="text" id="guild-code-input" class="url-input" placeholder="ENTER GUILD CODE (e.g. SL-8842)" style="width: 100%; text-transform:uppercase; background:#111; color:white; border:1px solid #333; padding:10px; margin-bottom:10px;">
-                
-                <button onclick="joinGuild()" class="accept-quest-btn" style="width: 100%; margin-top: 10px;">
-                    CONFIRM JOIN
-                </button>
+            <div id="guild-auth-view" style="display: flex; gap: 20px;">
+                <div style="flex: 1; border-right: 1px solid #333; padding-right: 20px;">
+                    <h3 style="color:white; font-family:'Orbitron'; margin-top:0;">JOIN A GUILD</h3>
+                    <p style="color:#aaa; font-size:0.9rem;">Enter an invite code to join.</p>
+                    
+                    <input type="text" id="friend-code-input" class="url-input" placeholder="ENTER CODE (e.g. SL-8842)" 
+                           style="width: 100%; text-transform:uppercase; background:#111; color:white; border:1px solid #333; padding:10px; margin-bottom:10px;">
+                    
+                    <button onclick="joinFriendGuild()" class="accept-quest-btn" style="width: 100%; margin-top: 10px;">
+                        JOIN SQUAD
+                    </button>
+                </div>
+
+                <div style="flex: 1; padding-left: 10px;">
+                    <h3 style="color:var(--neon-gold); font-family:'Orbitron'; margin-top:0;">FOUND A GUILD</h3>
+                    <p style="color:#aaa; font-size:0.9rem;">Become a Guild Master.</p>
+                    
+                    <input type="text" id="new-guild-name" class="url-input" placeholder="GUILD NAME (e.g. Ahjin)" 
+                           style="width: 100%; background:#111; color:white; border:1px solid #333; padding:10px; margin-bottom:10px;">
+                    
+                    <button onclick="createGuild()" class="accept-quest-btn" style="width: 100%; margin-top: 10px; border-color: var(--neon-gold); color: var(--neon-gold);">
+                        ESTABLISH GUILD
+                    </button>
+                </div>
             </div>
 
-            <div style="flex: 1; padding-left: 10px;">
-                <h3 style="color:var(--neon-gold); font-family:'Orbitron'; margin-top:0;">FOUND A GUILD</h3>
-                <p style="color:#aaa; font-size:0.9rem;">Become a Guild Master. Cost: <span style="color:white">Free (Beta)</span></p>
+            <div id="my-guild-view" class="hidden" style="text-align: center;">
+                <h2 id="display-guild-name" style="color:var(--neon-gold); font-family:'Orbitron'; font-size:2rem; margin:10px 0;">AHJIN GUILD</h2>
                 
-                <input type="text" id="new-guild-name" class="url-input" placeholder="GUILD NAME (e.g. Ahjin)" style="width: 100%; background:#111; color:white; border:1px solid #333; padding:10px; margin-bottom:10px;">
-                
-                <button onclick="createGuild()" class="accept-quest-btn" style="width: 100%; margin-top: 10px; border-color: var(--neon-gold); color: var(--neon-gold);">
-                    ESTABLISH GUILD
-                </button>
+                <div style="background: rgba(255,215,0,0.1); padding: 10px 20px; border-radius: 5px; display: inline-block; margin-bottom: 20px; border:1px dashed #FFD700;">
+                    INVITE CODE: <strong id="display-guild-code" style="color:white; letter-spacing: 2px; font-size:1.2rem;">LOADING...</strong>
+                </div>
+
+                <div style="text-align: left; margin-top: 10px; background:#111; padding:15px; border-radius:8px;">
+                    <h4 style="color:#aaa; border-bottom:1px solid #333; padding-bottom:5px; margin-top:0;">GUILD MEMBERS</h4>
+                    <div id="guild-members-list" class="nice-scroll" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                        <div style="color:#555; font-style:italic;">Scanning members...</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:20px;">
+                    <button onclick="leaveGuild()" class="action-btn" style="background:#333; color:#aaa; font-size:0.8rem; padding:5px 10px;">LEAVE GUILD</button>
+                </div>
             </div>
 
-        </div>
-
-        <div id="my-guild-stats" class="hidden" style="padding: 20px; text-align: center;">
-    
-    <h2 id="display-guild-name" style="color:var(--neon-gold); font-family:'Orbitron'; font-size:2rem; margin:10px 0;">AHJIN GUILD</h2>
-    
-    <div style="background: rgba(255,215,0,0.1); padding: 10px 20px; border-radius: 5px; display: inline-block; margin-bottom: 20px; border:1px dashed #FFD700;">
-        INVITE CODE: <strong id="display-guild-code" style="color:white; letter-spacing: 2px; font-size:1.2rem;">LOADING...</strong>
-    </div>
-
-    <div style="text-align: left; margin-top: 10px;">
-        <h4 style="color:#aaa; border-bottom:1px solid #333; padding-bottom:5px;">GUILD MEMBERS</h4>
-        <div id="guild-members-list" class="nice-scroll" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
-            <div style="color:#555; font-style:italic;">Scanning members...</div>
-        </div>
-    </div>
-
-    <p style="color:#aaa; font-size:0.8rem; margin-top:15px;">Share code to recruit hunters.</p>
-</div>
-
-        <div style="padding:15px; text-align:right; border-top:1px solid #333; background:rgba(0,0,0,0.2);">
-            <button class="accept-quest-btn" onclick="closeGuildInterface()" style="width:auto; padding:8px 20px;">CLOSE</button>
         </div>
     </div>
 </div>
@@ -356,10 +380,12 @@
     <script type="module" src="js/hunter-db.js"></script>
     <script type="module" src="js/leaderboard.js"></script>
     <script type="module" src="js/guild.js"></script>
-
+    <script type="module" src="js/roadmap.js"></script>
     <script src="js/game-map.js"></script>
     <script src="js/audio-manager.js"></script>
-    
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script> 
+
+
     <script>
         // 🔥 Toggle Function for Side Panel
         function toggleLeaderboard() {

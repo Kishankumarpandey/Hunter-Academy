@@ -19,11 +19,13 @@
   },
   "homepage": "https://github.com/Kishankumarpandey/Hunter-Academy#readme",
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
     "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "groq-sdk": "^0.37.0",
+    "openai": "^6.16.0",
     "youtube-transcript": "^1.2.1"
   }
 }

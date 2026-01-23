@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hunter Game Lab | Rune Link</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/game-style.css"> </head>
+<body>
+
+    <div class="lab-container">
+        <div class="config-panel">
+            <h1 style="color:var(--neon-blue); font-family:'Orbitron';">🎮 RUNE LINK: PROTOTYPE</h1>
+            <div class="input-group">
+                <input type="text" id="game-topic" placeholder="Enter Topic (e.g., Python Basics)...">
+                <button onclick="initGame()" class="start-btn">GENERATE GAME</button>
+            </div>
+            <div id="game-status">HP: 100% | SCORE: 0</div>
+        </div>
+
+        <div id="game-arena" class="hidden">
+            <h2 id="level-title">LOADING...</h2>
+            
+            <div class="playground">
+                <div id="col-terms" class="column"></div>   <div id="col-defs" class="column"></div>    </div>
+        </div>
+    </div>
+
+    <script src="js/game-engine.js"></script> </body>
+</html>

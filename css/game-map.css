@@ -848,3 +848,231 @@ body {
     .guild-floater i { font-size: 1.4rem; }
     .guild-label { font-size: 0.5rem; }
 }
+
+
+/* ROADMAP CONTAINER */
+#roadmap-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px;
+}
+
+/* ROADMAP CARD (The Tech Look) */
+.roadmap-card {
+    background: rgba(10, 15, 30, 0.9);
+    border: 1px solid #333;
+    border-left: 4px solid #555; /* Default border */
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    display: flex;
+    gap: 15px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideInUp 0.5s forwards;
+    transition: 0.3s;
+}
+
+.roadmap-card:hover {
+    background: rgba(20, 25, 45, 1);
+    border-color: var(--neon-blue);
+    transform: translateX(5px);
+}
+
+/* ANIMATION */
+@keyframes slideInUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* GLOWING DOT INDICATOR */
+.rank-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+
+/* CONTENT LAYOUT */
+.roadmap-content {
+    flex: 1;
+}
+
+.roadmap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+/* TECH GRID (Skills vs Prereqs) */
+.tech-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.tech-column small {
+    display: block;
+    color: #555;
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+/* TAGS STYLING */
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.tags span {
+    background: rgba(0, 234, 255, 0.1);
+    color: var(--neon-blue);
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 234, 255, 0.2);
+}
+
+/* PREREQUISITES LIST */
+.prereq-list {
+    color: #aaa;
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
+
+/* PROJECT BOX */
+.project-box {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 3px solid var(--neon-purple);
+}
+
+/* HISTORY CHIPS */
+.history-chip {
+    background: #111;
+    border: 1px solid #333;
+    color: #aaa;
+    padding: 5px 12px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: 0.2s;
+}
+
+.history-chip:hover {
+    border-color: var(--neon-purple);
+    color: var(--neon-purple);
+}
+/* ROADMAP GRAPH STYLING */
+#roadmap-graph svg {
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 5px rgba(0, 234, 255, 0.3));
+}
+
+/* Mermaid Default Overrides */
+.node rect, .node circle, .node ellipse, .node polygon, .node path {
+    stroke-width: 2px !important;
+}
+
+.edgePath .path {
+    stroke: var(--neon-purple) !important;
+    stroke-width: 2px !important;
+}
+
+.marker {
+    fill: var(--neon-purple) !important;
+}
+/* ROADMAP CONTAINER (Zoom Area) */
+#roadmap-steps {
+    width: 100%;
+    height: 60vh; /* Fixed height for the viewport */
+    background: #050505;
+    border: 1px solid #333;
+    overflow: hidden; /* Scrollbars hatao, kyunki ab hum Pan/Zoom use karenge */
+    position: relative;
+    cursor: grab; /* Grab cursor taaki user ko lage draggable hai */
+}
+
+#roadmap-steps:active {
+    cursor: grabbing;
+}
+
+/* SVG Styling */
+#roadmap-steps svg {
+    width: 100%;
+    height: 100%;
+}
+/* RESOURCE LINKS */
+.resource-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.resource-link {
+    color: #ccc;
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 3px 0;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.resource-link:hover {
+    color: var(--neon-blue);
+    transform: translateX(5px);
+}
+
+.resource-link i {
+    color: var(--neon-gold);
+}
+/* MANA INTERFACE CONTROLS */
+.mana-controls select {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-family: 'Rajdhani', sans-serif;
+    outline: none;
+    cursor: pointer;
+}
+
+.mini-btn {
+    background: transparent;
+    border: 1px solid var(--neon-purple);
+    color: var(--neon-purple);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mini-btn:hover {
+    background: var(--neon-purple);
+    color: white;
+    box-shadow: 0 0 10px var(--neon-purple);
+}
+
+.mana-timer {
+    cursor: pointer;
+    transition: 0.3s;
+}
+.mana-timer:hover {
+    transform: scale(1.05);
+}
