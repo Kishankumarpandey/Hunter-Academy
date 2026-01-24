@@ -17,7 +17,7 @@ window.fetchRoadmap = async function() {
 
     try {
         // 1. Call Server
-        const res = await fetch('http://localhost:3001/generate-roadmap', {
+        const response = await fetch('/generate-roadmap', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ role: role })
