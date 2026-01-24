@@ -1,5 +1,5 @@
 import { syncXPToCloud } from "./hunter-db.js";
-
+import { API_BASE_URL } from './config.js';
 // --- STATE VARIABLES ---
 let player;
 let quizData = [];
@@ -134,10 +134,10 @@ window.initDungeon = async function() {
     document.getElementById('loading-screen').classList.remove('hidden');
 
     try {
-        const payload = isManual ? { transcriptText: text } : { videoUrl: url };
+        const payload = isManual ? { transcriptText: text } : { videoUrl: url };    
 
         // Server Request
-        const res = await fetch('http://localhost:3001/generate-dungeon', {
+        const res = await fetch(`${API_BASE_URL}/generate-dungeon`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -364,7 +364,7 @@ window.extractNotes = async function() {
     if(isManual) topic = document.getElementById('manual-text').value.substring(0, 200);
 
     try {
-        const res = await fetch('http://localhost:3001/generate-notes', {
+        const res = await fetch(`${API_BASE_URL}/generate-notes`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ videoUrl: url, topic: topic })
@@ -517,7 +517,7 @@ window.fetchProjects = async function() {
     }
 
     try {
-        const res = await fetch('http://localhost:3001/generate-projects', {
+        const res = await fetch(`${API_BASE_URL}/generate-projects`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ topic: topic })

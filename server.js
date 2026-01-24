@@ -18,9 +18,13 @@ const port = process.env.PORT || 3001; // Port 3001 (Safe)
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+
+// --------------------------------------------------------
+// ⚠️ FIX 1: Duplicate Static Line Removed
+// --------------------------------------------------------
 app.use(express.static(__dirname)); // HTML/JS ke liye
 app.use('/assets', express.static(path.join(__dirname, 'assets'))); // Audio/Images ke liye
+
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // =================================================================
@@ -75,28 +79,27 @@ app.post('/generate-dungeon', async (req, res) => {
 
         const completion = await groq.chat.completions.create({
             messages: [
-                // ✅ Yahan hum AI ko "Strict Rule" de rahe hain
-{ 
-    role: "system", 
-    content: `
-    You are an expert **Engineering Professor**. 
-    
-    **CRITICAL VISUALIZATION RULE**:
-    Whenever a diagram, waveform, circuit, or physical component is mentioned, you MUST insert a visualization tag strictly in this format:
-    
-    
-    
-    ❌ DO NOT use stars (****) or bold text for images.
-    ✅ CORRECT: "The voltage rises. 
+                { 
+                    role: "system", 
+                    content: `
+                    You are an expert **Engineering Professor**. 
+                    
+                    **CRITICAL VISUALIZATION RULE**:
+                    Whenever a diagram, waveform, circuit, or physical component is mentioned, you MUST insert a visualization tag strictly in this format:
+                    
+                    
+                    
+                    ❌ DO NOT use stars (****) or bold text for images.
+                    ✅ CORRECT: "The voltage rises. 
 
 [Image of sinusoidal waveform]
 "
-    
-    **CONTEXT RULES**:
-    1. DOMAIN LOCKED: Engineering/Physics/CS only.
-    2. OUTPUT: Strictly valid JSON.
-    ` 
-},
+                    
+                    **CONTEXT RULES**:
+                    1. DOMAIN LOCKED: Engineering/Physics/CS only.
+                    2. OUTPUT: Strictly valid JSON.
+                    ` 
+                },
                 {
                     role: "user",
                     content: `
@@ -107,16 +110,10 @@ app.post('/generate-dungeon', async (req, res) => {
                     
                     TASK:
                     1. **Summary**: 5-7 bullet points summarizing the technical concepts. 
-                       - Use 
+                        - Use 
 
 [Image of X]
- tag for diagrams (e.g., 
-
-[Image of sine wave]
-, 
-
-[Image of AND gate]
-).
+ tag for diagrams.
                     2. **Questions**: 5 Multiple Choice Questions testing technical understanding.
 
                     STRICT JSON FORMAT:
@@ -133,7 +130,7 @@ app.post('/generate-dungeon', async (req, res) => {
                 }
             ],
             model: "llama-3.3-70b-versatile",
-            temperature: 0.1, // Low temp for strict accuracy
+            temperature: 0.1,
             response_format: { type: "json_object" }
         });
 
@@ -171,8 +168,6 @@ app.post('/generate-notes', async (req, res) => {
                     
                     **CRITICAL INSTRUCTIONS**:
                     1. **CONTEXT LOCK**: Always assume the context is **ACADEMIC & ENGINEERING**. 
-                       - If the topic is "Signal", assume **Signal Processing/Electronics**, NOT the messaging app.
-                       - If "Cloud", assume **Cloud Computing**, NOT weather.
                     2. **OUTPUT**: Strictly valid JSON.
                     ` 
                 },
@@ -188,7 +183,7 @@ app.post('/generate-notes', async (req, res) => {
                     1. **Title**: Academic Title.
                     2. **Summary**: Technical overview (TL;DR).
                     3. **Sections**: 3-4 deep technical sections using bullet points.
-                       - Use **** tags for circuit diagrams, waveforms, block diagrams.
+                        - Use  tags for circuit diagrams, waveforms, block diagrams.
                     4. **Key Takeaways**: Core engineering principles.
 
                     STRICT JSON FORMAT:
@@ -282,6 +277,7 @@ app.post('/generate-projects', async (req, res) => {
         res.status(500).json({ error: "Guild Closed." });
     }
 });
+
 // =================================================================
 // 4. GENERATE ROADMAP (WITH RESOURCES LINKS) 🧠
 // =================================================================
@@ -349,22 +345,63 @@ app.post('/generate-roadmap', async (req, res) => {
         res.status(500).json({ error: "Oracle connection failed." });
     }
 });
+
 // =================================================================
-// START SERVER
+// 🤖 AI SHADOW SOLDIER (TACTICAL TEACHER MODE)
 // =================================================================
-app.listen(port, () => {
-    console.log(`\n🚀 HUNTER SERVER ONLINE: http://localhost:${port}`);
-    console.log(`👉 Extraction Engine (YouTube) Ready`);
-    console.log(`👉 AI Core (Groq) Connected`);
-    console.log(`👉 Running on PORT ${port} (Safe Mode)\n`);
+app.post('/chat', async (req, res) => {
+    try {
+        const { message } = req.body;
+
+        if (!message) {
+            return res.status(400).json({ error: "Message is required" });
+        }
+
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.5,
+            messages: [
+                {
+                    role: "system",
+                    content: `
+                    You are IGRIS, an elite Shadow Commander and Master Engineer.
+                    Your job is to TEACH concepts clearly like an expert teacher.
+
+                    TEACHING FLOW (STRICT):
+                    1. Start with a simple real-life analogy.
+                    2. Explain the core concept simply.
+                    3. Break into 3-6 bullet steps.
+                    4. If visualization is needed, insert: 
+                    5. Give real engineering usage.
+                    6. End with one-line summary.
+
+                    OUTPUT MUST BE PURE HTML USING THESE:
+                    <div class="tactical-analysis"><strong>TACTICAL ANALYSIS:</strong> Explanation</div>
+                    <ul class="strike-points"><li>Point</li></ul>
+                    <div class="final-blow"><strong>FINAL BLOW:</strong> Summary</div>
+                    No markdown. Only HTML.
+                    `
+                },
+                {
+                    role: "user",
+                    content: message
+                }
+            ]
+        });
+
+        const reply = completion.choices[0].message.content;
+        res.json({ reply });
+
+    } catch (error) {
+        console.error("AI Error:", error.message);
+        res.status(500).json({ error: "Igris is regrouping..." });
+    }
 });
 
-
-
-
-
 // =================================================================
-// 🎮 GAMIFICATION ENGINE (RUNE LINK)
+// 🎮 GAMIFICATION ENGINE (VISUAL RUNE LINK)
+// -----------------------------------------------------------------
+// ⚠️ FIX 2: Updated to include 'visual_prompt' for the new Game Lab
 // =================================================================
 app.post('/generate-game-data', async (req, res) => {
     try {
@@ -375,23 +412,28 @@ app.post('/generate-game-data', async (req, res) => {
             messages: [
                 { 
                     role: "system", 
-                    content: `You are a Game Designer. Convert the topic into a "Matching Game" dataset.
+                    content: `You are a Visual Game Designer. Convert the topic into a "Matching Game" dataset.
                     
                     STRICT JSON FORMAT:
                     {
                         "gameTitle": "Creative Title",
                         "pairs": [
-                            { "id": 1, "term": "Short Term (e.g. CPU)", "def": "Definition (e.g. Central Processing Unit)" },
-                            { "id": 2, "term": "...", "def": "..." },
-                            { "id": 3, "term": "...", "def": "..." },
-                            { "id": 4, "term": "...", "def": "..." },
-                            { "id": 5, "term": "...", "def": "..." }
+                            { 
+                                "id": 1, 
+                                "term": "Short Term (e.g. CPU)", 
+                                "def": "Definition (e.g. Central Processing Unit)",
+                                "visual_prompt": "Cyberpunk style illustration of [Term], glowing neon, 8k render"
+                            },
+                            { "id": 2, "term": "...", "def": "...", "visual_prompt": "..." },
+                            { "id": 3, "term": "...", "def": "...", "visual_prompt": "..." },
+                            { "id": 4, "term": "...", "def": "...", "visual_prompt": "..." },
+                            { "id": 5, "term": "...", "def": "...", "visual_prompt": "..." }
                         ]
                     }` 
                 },
                 {
                     role: "user",
-                    content: `Topic: "${topic}". Create 5 matching pairs for a beginner.`
+                    content: `Topic: "${topic}". Create 6 matching pairs with visual prompts.`
                 }
             ],
             model: "llama-3.3-70b-versatile",
@@ -406,4 +448,24 @@ app.post('/generate-game-data', async (req, res) => {
         console.error("Game Gen Error:", error);
         res.status(500).json({ error: "Game Engine Failed" });
     }
+});
+
+// =================================================================
+// 🚀 START SERVER (ROBUST MODE)
+// =================================================================
+const server = app.listen(port, () => {
+    console.log(`\n✅ HUNTER SERVER ONLINE: http://localhost:${port}`);
+    console.log(`👉 All Systems Active`);
+    console.log(`👉 Waiting for commands...\n`);
+});
+
+// 🔥 Handle Port Conflicts (EADDRINUSE)
+server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+        console.error(`\n⚠️ FATAL ERROR: Port ${port} is BUSY!`);
+        console.error(`👉 Solution: Task Manager mein jao aur 'node.exe' ko band karo.\n`);
+    } else {
+        console.error("⚠️ SERVER CRASHED:", e);
+    }
+    process.exit(1);
 });

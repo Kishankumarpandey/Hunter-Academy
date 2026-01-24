@@ -241,7 +241,7 @@
             const loadingId = addMessage("Analyzing...", 'shadow', true);
 
             try {
-                const res = await fetch('/chat-with-shadow', {
+               const res = await fetch('/chat', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: msg, context: topic })

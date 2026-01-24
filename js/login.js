@@ -15,43 +15,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupForm = document.getElementById('signup-form');
     const googleBtn = document.getElementById('google-login');
     const loader = document.getElementById('loader');
-    const loaderText = loader.querySelector('p');
+    const loaderText = loader ? loader.querySelector('p') : null;
 
-    // --- 1. SMART REDIRECT SYSTEM (The Traffic Police) ---
+    // --- 1. SMART REDIRECT SYSTEM (UPDATED: DIRECT TO GAME MAP) ---
     async function checkUserProgressAndRedirect(user) {
-        showLoader("CHECKING HUNTER DATA...");
+        showLoader("ENTERING HUNTER WORLD..."); 
         
         try {
+            // Hum sirf check kar rahe hain ki data hai ya nahi, par redirect seedha map par karenge
             const docRef = doc(db, "users", user.uid);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                const data = docSnap.data();
-                console.log("User Data Found:", data);
-
-                // STEP 1: Agar Setup Complete hai (Role Selected) -> Map
-                if (data.setupComplete === true && data.role) {
-                    console.log("Redirect -> Game Map");
-                    window.location.href = 'game-map.html';
-                }
-                // STEP 2: Agar Branch hai par Role nahi -> Role Select
-                else if (data.branch) {
-                    console.log("Redirect -> Role Select");
-                    window.location.href = 'role-select.html';
-                }
-                // STEP 3: Agar Branch bhi nahi hai -> Profile Setup
-                else {
-                    console.log("Redirect -> Profile Setup");
-                    window.location.href = 'profile.html';
-                }
+                console.log("User Data Found. Redirecting to Game Map...");
             } else {
-                // Agar DB entry nahi hai (Rare error), Profile bhejo
-                window.location.href = 'profile.html';
+                console.log("No Data Found. Redirecting to Game Map...");
             }
+
+            // 🔥 FORCE REDIRECT TO GAME MAP
+            window.location.href = 'game-map.html';
+
         } catch (error) {
             console.error("Redirect Error:", error);
             hideLoader();
-            alert("System Error: Could not verify profile.");
+            // Error hone par bhi map par bhejo
+            window.location.href = 'game-map.html';
         }
     }
 
@@ -68,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Firebase Login
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 
-                // Login Success -> Ab Check karo kahan bhejna hai
+                // Login Success -> Direct Map Redirect
                 await checkUserProgressAndRedirect(userCredential.user);
 
             } catch (error) {
@@ -99,10 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         xp: 0,
                         setupComplete: false 
                     });
-                    // New user -> Profile Setup
-                    window.location.href = 'profile.html';
+                    
+                    // 🔥 UPDATE: New Google User -> Direct Game Map
+                    window.location.href = 'game-map.html';
                 } else {
-                    // Old user -> Check Progress
+                    // Old user -> Direct Game Map
                     await checkUserProgressAndRedirect(user);
                 }
             } catch (error) {
@@ -136,8 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     setupComplete: false
                 });
 
-                // Signup ke baad Profile page par jana zaroori hai
-                window.location.href = 'profile.html';
+                // 🔥 UPDATE: Signup Success -> Direct Game Map
+                window.location.href = 'game-map.html';
 
             } catch (error) {
                 hideLoader();
