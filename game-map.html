@@ -21,8 +21,25 @@
             </div>
 
             <div class="player-info">
-                <h2 id="player-name">JIN-WOO</h2>
+               <div class="name-container" style="position: relative; width: 100%; text-align: center;">
+    
+    <h2 id="player-name" onclick="enableEditMode()" 
+        style="cursor: pointer; border: 1px dashed transparent; transition: 0.3s; margin: 0; padding: 5px;" 
+        onmouseover="this.style.border='1px dashed var(--neon-blue)'; this.style.color='var(--neon-blue)';" 
+        onmouseout="this.style.border='1px dashed transparent'; this.style.color='white';">
+        JIN-WOO
+    </h2>
+
+    <input type="text" id="edit-name-input" 
+           style="display: none; width: 90%; background: #000; color: #00eaff; border: 1px solid #00eaff; 
+                  padding: 5px; font-family: 'Orbitron'; text-align: center; font-size: 1.2rem; outline: none; margin: 0 auto;"
+           placeholder="ENTER NAME..." 
+           onblur="saveNewName()" 
+           onkeydown="checkEnterKey(event)">
+
+</div>
                 <p>SHADOW MONARCH</p>
+                
 
                 <div class="stat-row">
                     <span><i class="fas fa-layer-group"></i> LEVEL</span>
@@ -396,6 +413,90 @@
             if(window.audioSys) audioSys.play('hover');
         }
     </script>
+    <script type="module">
+    import { auth, db } from './js/firebase-config.js';
+    import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // 🔥 1. AUTO-LOAD NAME ON REFRESH (Ye hai asli fix)
+    onAuthStateChanged(auth, async (user) => {
+        const nameText = document.getElementById('player-name');
+        
+        if (user) {
+            // Step A: Auth Profile se naam uthao (Fastest)
+            if(user.displayName) {
+                nameText.innerText = user.displayName.toUpperCase();
+            }
+
+            // Step B: Firestore se confirm karo (Most Accurate)
+            const userRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(userRef);
+            
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if(data.displayName) {
+                    nameText.innerText = data.displayName.toUpperCase();
+                }
+            }
+        } else {
+            // Agar koi login nahi hai
+            nameText.innerText = "UNKNOWN HUNTER";
+        }
+    });
+
+    // ---------------------------------------------------------
+    // 2. EDIT MODE LOGIC (Jo pehle diya tha)
+    // ---------------------------------------------------------
+    window.enableEditMode = function() {
+        const nameText = document.getElementById('player-name');
+        const nameInput = document.getElementById('edit-name-input');
+
+        nameInput.value = nameText.innerText;
+        nameText.style.display = 'none';
+        nameInput.style.display = 'block';
+        nameInput.focus();
+    };
+
+    window.checkEnterKey = function(event) {
+        if (event.key === "Enter") {
+            saveNewName();
+        }
+    };
+
+    window.saveNewName = async function() {
+        const nameText = document.getElementById('player-name');
+        const nameInput = document.getElementById('edit-name-input');
+        let newName = nameInput.value.trim();
+
+        if (!newName) {
+            nameInput.style.display = 'none';
+            nameText.style.display = 'block';
+            return;
+        }
+
+        newName = newName.toUpperCase();
+
+        // UI Instant Update
+        nameInput.style.display = 'none';
+        nameText.style.display = 'block';
+        nameText.innerText = newName; 
+
+        const user = auth.currentUser;
+        if(user && user.displayName === newName) return;
+
+        try {
+            console.log("🔄 Saving to Database...");
+            if(user) await updateProfile(user, { displayName: newName });
+            if(user) {
+                const userRef = doc(db, "users", user.uid);
+                await updateDoc(userRef, { displayName: newName });
+            }
+            console.log("✅ Identity Saved Permanently");
+        } catch (error) {
+            console.error("❌ Update Failed:", error);
+        }
+    };
+</script>
 
 </body>
 </html>

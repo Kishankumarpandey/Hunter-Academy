@@ -1076,3 +1076,7 @@ body {
 .mana-timer:hover {
     transform: scale(1.05);
 }
+#player-name:hover {
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px var(--neon-blue);
+}
