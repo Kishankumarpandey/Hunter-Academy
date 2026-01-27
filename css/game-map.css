@@ -1080,3 +1080,56 @@ body {
     color: var(--neon-blue);
     text-shadow: 0 0 10px var(--neon-blue);
 }
+/* =========================================
+   🔥 FINAL FULLSCREEN FIX
+   ========================================= */
+
+/* 1. Modal Box jab Fullscreen ho */
+.modal-fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    background: #050505 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    z-index: 10000 !important;
+    padding: 0 !important;
+}
+
+/* 2. Header (Top Bar) Styles */
+.modal-fullscreen .alert-header {
+    flex-shrink: 0; /* Resize na ho */
+    border-bottom: 2px solid var(--neon-blue);
+    padding: 15px 20px;
+    background: #0a0f14;
+}
+
+/* 3. 🔥 MAGIC: Hide Search & History Sections */
+/* Jab Fullscreen active ho, to Content ke andar sab kuch chupa do... */
+.modal-fullscreen .alert-content > div {
+    display: none !important;
+}
+/* ...Siwaye Roadmap Steps ke (Jise hume dikhana hai) */
+.modal-fullscreen .alert-content > #roadmap-steps {
+    display: block !important;
+    flex: 1 !important;
+    height: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow-y: auto !important; /* Scroll sirf isme aayega */
+    padding: 40px !important;
+    background: #0a0f14;
+}
+
+/* 4. Ensure Content Area Stretches */
+.modal-fullscreen .alert-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}

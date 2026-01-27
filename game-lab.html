@@ -3,29 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hunter Game Lab | Rune Link</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/game-style.css"> </head>
+    <title>RUNE LINK // SYSTEM LINK</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/game-lab.css">
+</head>
 <body>
 
-    <div class="lab-container">
-        <div class="config-panel">
-            <h1 style="color:var(--neon-blue); font-family:'Orbitron';">🎮 RUNE LINK: PROTOTYPE</h1>
-            <div class="input-group">
-                <input type="text" id="game-topic" placeholder="Enter Topic (e.g., Python Basics)...">
-                <button onclick="initGame()" class="start-btn">GENERATE GAME</button>
-            </div>
-            <div id="game-status">HP: 100% | SCORE: 0</div>
+    <video autoplay muted loop playsinline id="bg-video" 
+           poster="https://cdn.pixabay.com/photo/2016/11/29/05/45/astronomy-1867616_960_720.jpg">
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-network-lines-2767-large.mp4" type="video/mp4">
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="cyber-grid"></div> 
+    <div class="scanlines"></div>
+
+    <button onclick="abortMission()" class="cyber-btn" 
+            style="position: fixed; top: 20px; right: 20px; z-index: 1000; font-size: 0.9rem; padding: 10px 20px; border-color: var(--danger); color: var(--danger);">
+        <i class="fas fa-sign-out-alt"></i> ABORT MISSION
+    </button>
+
+    <div id="intro-overlay" onclick="startGameSequence()">
+        
+        <div class="thought-cloud">
+            <p>
+                <strong>MISSION: NEURAL SYNC</strong><br>
+                Match the data terms correctly to re-establish the connection.<br>
+                <span style="color: var(--primary); font-size: 0.9em; margin-top: 10px; display: block;">[ Click anywhere to begin ]</span>
+            </p>
         </div>
 
-        <div id="game-arena" class="hidden">
-            <h2 id="level-title">LOADING...</h2>
+        <img src="photos/sheep.png.png" alt="VR Sheep" class="intro-character floating-anim">
+
+    </div>
+
+    <div class="video-overlay"></div>
+    <div class="vignette"></div>
+
+    <svg id="svg-layer"></svg>
+
+    <div class="game-interface">
+        
+        <header class="hud-header">
+            <div class="hud-group">
+                <div class="sub-title">SYSTEM INTEGRITY</div>
+                <div class="health-bar-frame">
+                    <div class="health-bar-fill" id="health-fill"></div>
+                </div>
+            </div>
             
-            <div class="playground">
-                <div id="col-terms" class="column"></div>   <div id="col-defs" class="column"></div>    </div>
+            <div class="hud-center">
+                <h1 class="game-title">RUNE LINK</h1>
+                <div class="sub-title">NEURAL HANDSHAKE PROTOCOL</div>
+            </div>
+
+            <div class="hud-group right">
+                <div class="sub-title">SYNC RATE</div>
+                <div class="score-display"><span id="score">0</span>%</div>
+            </div>
+        </header>
+
+        <div class="timer-display">
+            TIME: <span id="game-timer">00:00</span>
+        </div>
+
+        <main class="card-arena">
+            <div class="column" id="col-terms"></div>
+            <div class="column" id="col-defs"></div>
+        </main>
+    </div>
+
+    <div class="modal hidden" id="victory-modal">
+        <div class="modal-content">
+            <h2 class="glitch-text">SYSTEM SYNCHRONIZED</h2>
+            <p style="color:#aaa;">Neural pathway established. Data upload complete.</p>
+            
+            <div class="reward-container">
+                <div class="video-placeholder">
+                    <div class="play-icon">▶</div>
+                    <span>REWARD_UNLOCKED.mp4</span>
+                </div>
+            </div>
+
+            <button class="cyber-btn" onclick="location.reload()">INITIATE NEXT PROTOCOL</button>
         </div>
     </div>
 
-    <script src="js/game-engine.js"></script> </body>
+    <div class="modal hidden" id="fail-modal">
+        <div class="modal-content fail-theme">
+            <h2 class="glitch-text">CONNECTION SEVERED</h2>
+            <p style="color:#aaa;">Critical system failure. Integrity depleted.</p>
+            <button class="cyber-btn fail-btn" onclick="location.reload()">REBOOT SYSTEM</button>
+        </div>
+    </div>
+
+    <script src="js/game-engine.js"></script>
+</body>
 </html>

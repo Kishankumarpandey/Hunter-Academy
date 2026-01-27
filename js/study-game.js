@@ -1,7 +1,31 @@
+// FORCE CLEAN LOAD (critical fix)
+if (performance.navigation.type !== 1) {
+    window.location.reload(true);
+}
+
+
+
 import { syncXPToCloud } from "./hunter-db.js";
 import { API_BASE_URL } from './config.js';
 // --- STATE VARIABLES ---
 let player;
+function destroyYouTubePlayer() {
+    try {
+        if (checkInterval) {
+            clearInterval(checkInterval);
+            checkInterval = null;
+        }
+
+        if (player && typeof player.destroy === "function") {
+            player.destroy();
+            player = null;
+            console.log("🧨 YouTube Player Destroyed Properly");
+        }
+    } catch (e) {
+        console.warn("YT destroy error:", e);
+    }
+}
+
 let quizData = [];
 let summaryData = [];
 let nextTriggerTime = 0;
@@ -27,7 +51,7 @@ document.body.addEventListener('click', () => {
 }, { once: true });
 
 // --- ON LOAD ---
-window.onload = function() {
+window.addEventListener('load', function() {
     const savedUrl = localStorage.getItem('mission_url');
     if (savedUrl) {
         const urlInput = document.getElementById('yt-url');
@@ -38,7 +62,7 @@ window.onload = function() {
             }, 500);
         }
     }
-};
+});
 
 // --- HELPER: FORMAT AI TEXT (DIAGRAMS) ---
 function formatAIContent(text) {
@@ -819,3 +843,47 @@ window.goBackFromGuild = function() {
 window.closeModal = function(modalId) {
     document.getElementById(modalId).classList.add('hidden');
 }
+
+
+// ==========================================
+// 🎮 RUNE LINK ACTIVATOR (Logic)
+// ==========================================
+
+// NOTE: Humne 'window.' lagaya hai taaki HTML isse dhoond sake
+window.activateRuneMode = function() {
+    destroyYouTubePlayer();  
+
+    console.log(">> INITIATING RUNE LINK PROTOCOL...");
+
+    // 1. Button Feedback (Loading Animation)
+    const btn = document.querySelector('button[onclick="activateRuneMode()"]');
+    if(btn) {
+        btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> GENERATING...`;
+        btn.style.opacity = "0.8";
+    }
+
+    // 2. MOCK DATA (Digital Electronics Topic)
+    // (Jab asli AI banega, tab hum yahan video title fetch karenge)
+    const currentTopic = "Digital Electronics: Logic Gates"; 
+
+    const runeData = {
+        title: currentTopic,
+        pairs: [
+            { id: 1, term: "AND Gate", def: "Output is HIGH only if all inputs are HIGH." },
+            { id: 2, term: "OR Gate", def: "Output is HIGH if at least one input is HIGH." },
+            { id: 3, term: "NOT Gate", def: "Inverts the input signal (0 becomes 1, 1 becomes 0)." },
+            { id: 4, term: "NAND Gate", def: "Universal gate; behaves like AND followed by NOT." },
+            { id: 5, term: "XOR Gate", def: "Output is HIGH only if inputs are different." },
+            { id: 6, term: "Truth Table", def: "A chart showing all possible input-output combinations." }
+        ]
+    };
+
+    // 3. Save to Memory & Redirect
+    setTimeout(() => {
+        // Data Browser Memory me save karo
+        localStorage.setItem("currentRuneLevel", JSON.stringify(runeData));
+        
+        // Game Lab par jao
+        window.location.href = "game-lab.html";
+    }, 1000); 
+};

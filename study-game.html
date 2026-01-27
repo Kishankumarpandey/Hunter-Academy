@@ -101,6 +101,11 @@
                 <button onclick="toggleManaZone()" id="mana-btn" class="action-btn" style="flex:1; border:1px solid var(--neon-purple); background: rgba(189, 0, 255, 0.1); color: var(--neon-purple); font-size:0.8rem;">
                     <i class="fas fa-headphones-alt"></i> FOCUS
                 </button>
+
+                <button onclick="activateRuneMode()" class="cyber-btn" 
+                style="border: 1px solid var(--neon-blue); color: var(--neon-blue); background: rgba(0, 243, 255, 0.1); padding: 10px 20px; font-family: 'Orbitron'; cursor: pointer; margin-left: 10px;">
+                <i class="fas fa-gamepad"></i> RUNE MODE
+                 </button>
             </div>
 
             <div id="mana-interface" class="hidden" style="background: rgba(20, 0, 40, 0.9); border: 1px solid var(--neon-purple); padding: 15px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 0 30px rgba(189, 0, 255, 0.2);">
@@ -289,6 +294,13 @@
         <script src="https://www.youtube.com/iframe_api"></script>
         <script type="module" src="js/firebase-config.js"></script>
         <script type="module" src="js/hunter-db.js"></script>
+<script>
+if (window.location.search.includes("fresh")) {
+    console.log("Hard Reload Triggered");
+    localStorage.removeItem("currentRuneLevel");
+    window.scrollTo(0,0);
+}
+</script>
 
     </body>
     </html>
