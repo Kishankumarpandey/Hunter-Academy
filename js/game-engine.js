@@ -1,4 +1,4 @@
-/* RUNE LINK - GAME ENGINE (SHEEP VERSION) */
+/* RUNE LINK - GAME ENGINE (SMART AI VERSION) */
 
 // ==========================================
 // 1. STATE & DOM ELEMENTS
@@ -6,8 +6,8 @@
 const state = {
     selectedTerm: null, selectedDef: null,
     matches: 0, totalPairs: 0, health: 100, isLocked: true,
-    comboCount: 0, // Combo Tracker
-    timerInterval: null, startTime: 0 // Timer
+    comboCount: 0, 
+    timerInterval: null, startTime: 0 
 };
 
 const dom = {
@@ -18,42 +18,46 @@ const dom = {
     score: document.getElementById('score'),
     timer: document.getElementById('game-timer'),
     modalWin: document.getElementById('victory-modal'),
-    modalFail: document.getElementById('fail-modal')
+    modalFail: document.getElementById('fail-modal'),
+    // 🔥 New: Error Modal for Songs/Trash
+    modalError: document.getElementById('error-modal') 
 };
 
 // ==========================================
-// 2. INITIALIZATION
+// 2. INITIALIZATION (THE BRAIN 🧠)
 // ==========================================
 function initGame() {
     console.log(">> SYSTEM INIT...");
     let gameData = null;
     
-    // Load Data
+    // 1. Load Data from Backend Response
     const storedData = localStorage.getItem("currentRuneLevel");
+    
     if (storedData) {
-        try { gameData = JSON.parse(storedData); } catch (e) {}
+        try { gameData = JSON.parse(storedData); } catch (e) { console.error("Corrupt Data"); }
     } 
     
+    // 🔥 SMART CHECK 1: Agar Data hi nahi hai
     if (!gameData) {
-        gameData = {
-            title: "Thermodynamics (Simulation)",
-            pairs: [
-                { id: 1, term: "Zeroth Law", def: "If two systems are in thermal equilibrium with a third, they are in equilibrium with each other." },
-                { id: 2, term: "First Law", def: "Energy cannot be created or destroyed, only transformed." },
-                { id: 3, term: "Entropy", def: "A measure of the disorder or randomness in a closed system." },
-                { id: 4, term: "Adiabatic", def: "A process where no heat is transferred into or out of the system." },
-                { id: 5, term: "Isochoric", def: "A thermodynamic process that occurs at constant volume." }
-            ]
-        };
+        handleSystemError("NO DATA STREAM FOUND", "Please generate a dungeon first.");
+        return;
     }
 
-    // 🔥 Apply Theme
+    // 🔥 SMART CHECK 2: Agar AI ne kaha "Ye Song hai / Not Educational"
+    // (Backend se agar { "error": "Not educational" } aaya ho)
+    if (gameData.error || !gameData.pairs || gameData.pairs.length === 0) {
+        handleSystemError("SIGNAL NOISE DETECTED", "This video appears to be Entertainment/Music. No educational runes found.");
+        return;
+    }
+
+    // Agar sab sahi hai, to Game start karo
+    console.log(">> DATA VERIFIED. STARTING SIMULATION.");
+
+    // 🔥 Apply Theme based on Topic
     applyTheme(gameData.title);
 
     // Update Titles
-    const titleHeader = document.querySelector('.game-title');
     const subTitle = document.querySelector('.sub-title');
-    if(titleHeader) titleHeader.innerText = "RUNE LINK";
     if(subTitle) subTitle.innerText = gameData.title ? gameData.title.toUpperCase() : "SYSTEM LINK";
 
     // Setup Logic
@@ -64,6 +68,24 @@ function initGame() {
     shuffle(defs);
     renderColumn(dom.colTerms, terms);
     renderColumn(dom.colDefs, defs);
+}
+
+// 🔥 NEW: Error Handler for Songs/Bad Videos
+function handleSystemError(title, msg) {
+    if(!dom.modalError) return alert(msg); // Fallback
+
+    const errTitle = dom.modalError.querySelector('h2');
+    const errMsg = dom.modalError.querySelector('p');
+    
+    if(errTitle) errTitle.innerText = title;
+    if(errMsg) errMsg.innerText = msg;
+
+    dom.modalError.classList.remove('hidden');
+    
+    // 3 Second baad wapas bhej do
+    /* setTimeout(() => {
+        window.history.back();
+    }, 4000); */
 }
 
 // ==========================================
@@ -124,13 +146,11 @@ function checkMatch(x, y) {
 function onMatchSuccess(x, y) {
     drawConnector(state.selectedTerm, state.selectedDef, true);
     
-    // Cards update
     state.selectedTerm.classList.add('matched');
     state.selectedDef.classList.add('matched');
     state.selectedTerm.classList.remove('selected');
     state.selectedDef.classList.remove('selected');
 
-    // Stats
     state.matches++;
     state.comboCount++;
     state.selectedTerm = null; state.selectedDef = null; state.isLocked = false;
@@ -138,11 +158,9 @@ function onMatchSuccess(x, y) {
     const percent = Math.round((state.matches / state.totalPairs) * 100);
     if(dom.score) dom.score.innerText = percent;
 
-    // Visual FX
     createParticles(x, y);
     if(state.comboCount > 1) showCombo(x, y, state.comboCount);
 
-    // Victory Check
     if (state.matches === state.totalPairs) {
         clearInterval(state.timerInterval);
         setTimeout(() => { if(dom.modalWin) dom.modalWin.classList.remove('hidden'); }, 1000);
@@ -152,10 +170,10 @@ function onMatchSuccess(x, y) {
 function onMatchFail() {
     state.selectedTerm.classList.add('shake');
     state.selectedDef.classList.add('shake');
-    state.comboCount = 0; // Reset Combo
+    state.comboCount = 0; 
     
     const line = drawConnector(state.selectedTerm, state.selectedDef, false);
-    damageHealth(20);
+    damageHealth(15); // Health Damage
 
     setTimeout(() => {
         if(state.selectedTerm) state.selectedTerm.classList.remove('shake', 'selected');
@@ -166,7 +184,7 @@ function onMatchFail() {
 }
 
 // ==========================================
-// 5. VISUAL FX (PARTICLES & COMBO)
+// 5. VISUAL FX
 // ==========================================
 function createParticles(x, y) {
     const particleCount = 20;
@@ -280,12 +298,12 @@ function applyTheme(title) {
     let videoUrl = "https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-network-lines-2767-large.mp4";
 
     // Coding Theme
-    if (t.includes("code") || t.includes("python") || t.includes("java") || t.includes("html")) {
+    if (t.includes("code") || t.includes("python") || t.includes("java") || t.includes("html") || t.includes("web")) {
         body.setAttribute('data-theme', 'coding');
         videoUrl = "https://assets.mixkit.co/videos/preview/mixkit-matrix-style-binary-code-rain-12502-large.mp4";
     }
-    // Physics Theme
-    else if (t.includes("physics") || t.includes("space") || t.includes("thermo")) {
+    // Physics/Science Theme
+    else if (t.includes("physics") || t.includes("space") || t.includes("thermo") || t.includes("science")) {
         body.setAttribute('data-theme', 'physics');
         videoUrl = "https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4";
     }
@@ -298,33 +316,29 @@ function applyTheme(title) {
 }
 
 // ==========================================
-// 9. SHEEP INTRO LOGIC (NEW) 🐑
+// 9. SHEEP INTRO LOGIC (VR START) 🐑
 // ==========================================
-
-// 1. Page Load hone par Game ko Blur karo
 document.addEventListener("DOMContentLoaded", () => {
     const gameUI = document.querySelector('.game-interface');
     if(gameUI) gameUI.classList.add('blur-mode');
 });
 
-// 2. Click anywhere to Start Game
 window.startGameSequence = function() {
     const overlay = document.getElementById('intro-overlay');
     const gameUI = document.querySelector('.game-interface');
     
-    // Fade out the intro overlay
+    // Fade out overlay
     overlay.style.transition = "opacity 0.5s ease";
     overlay.style.opacity = "0";
     
-    // Wait for fade to finish, then unblur and start game
+    // Wait then start
     setTimeout(() => {
-        overlay.style.display = 'none'; // Hide completely
-        gameUI.classList.remove('blur-mode'); // Unblur game background
+        overlay.style.display = 'none';
+        gameUI.classList.remove('blur-mode'); 
         
-        // 🔥 Start actual game logic
+        // 🔥 Start Game
         initGame(); 
         startTimerLogic(); 
         state.isLocked = false; 
-        console.log(">> VR SIMULATION STARTED");
     }, 500);
 };

@@ -1,14 +1,15 @@
-// FORCE CLEAN LOAD (critical fix)
+// FORCE CLEAN LOAD
 if (performance.navigation.type !== 1) {
-    window.location.reload(true);
+    // window.location.reload(true);
 }
 
+const API_BASE_URL = 'http://localhost:3001'; 
 
-
-import { syncXPToCloud } from "./hunter-db.js";
-import { API_BASE_URL } from './config.js';
 // --- STATE VARIABLES ---
 let player;
+let timingsCalculated = false; 
+let checkInterval;
+
 function destroyYouTubePlayer() {
     try {
         if (checkInterval) {
@@ -31,18 +32,17 @@ let summaryData = [];
 let nextTriggerTime = 0;
 let currentQIndex = 0;
 let isQuizActive = false;
-let checkInterval;
 let isManual = false;
-let correctAnswers = 0; 
-let totalAnswered = 0; 
-let isQuizSystemOnline = true; 
+let correctAnswers = 0;
+let totalAnswered = 0;
+let isQuizSystemOnline = true;
 
 // Session State
-let sessionXP = 0; 
-let isDungeonCleared = false; 
+let sessionXP = 0;
+let isDungeonCleared = false;
 
 // Variables for Grimoire & Quests
-let currentNoteData = null; 
+let currentNoteData = null;
 let currentGeneratedProjects = [];
 
 // --- AUDIO SYSTEM INTEGRATION ---
@@ -68,18 +68,15 @@ window.addEventListener('load', function() {
 function formatAIContent(text) {
     if (!text) return "";
 
-    // 1️⃣ Convert **** text **** → [Image of text]
-    let formattedText = text.replace(
-        /\*\*\*\*(.*?)\*\*\*\*/g,
-        '[Image of $1]'
-    );
+    // Remove **** markers
+    let formattedText = text.replace(/\*\*\*\*(.*?)\*\*\*\*/g, '');
 
-    // 2️⃣ Remove bold visual hints (**waveform**, **diagram**, **circuit**)
-    formattedText = formattedText.replace(/\*\*(.*? waveform.*?)\*\*/gi, '');
-    formattedText = formattedText.replace(/\*\*(.*? diagram.*?)\*\*/gi, '');
-    formattedText = formattedText.replace(/\*\*(.*? circuit.*?)\*\*/gi, '');
+    // Remove bold hints like **waveform**, **diagram**, **circuit**
+    formattedText = formattedText.replace(/\*\*(.*?waveform.*?)\*\*/gi, '');
+    formattedText = formattedText.replace(/\*\*(.*?diagram.*?)\*\*/gi, '');
+    formattedText = formattedText.replace(/\*\*(.*?circuit.*?)\*\*/gi, '');
 
-    // 3️⃣ Match [Image of X] correctly
+    // Match: [Image of X]
     const regex = /\[Image of (.*?)\]/g;
 
     return formattedText.replace(regex, function (_, query) {
@@ -112,7 +109,7 @@ function formatAIContent(text) {
     });
 }
 
-    
+
 // --- HELPER: GET VIDEO TITLE ---
 async function getVideoTitle(videoUrl) {
     try {
@@ -145,7 +142,7 @@ window.toggleManual = function() {
     }
 }
 
-// --- INIT DUNGEON ---
+// --- INIT DUNGEON (QUIZ MODE) ---
 window.initDungeon = async function() {
     const url = document.getElementById('yt-url').value;
     const text = document.getElementById('manual-text') ? document.getElementById('manual-text').value : "";
@@ -158,9 +155,9 @@ window.initDungeon = async function() {
     document.getElementById('loading-screen').classList.remove('hidden');
 
     try {
-        const payload = isManual ? { transcriptText: text } : { videoUrl: url };    
+        const payload = isManual ? { transcriptText: text } : { videoUrl: url };
 
-        // Server Request
+        // Server Request for QUIZ generation
         const res = await fetch(`${API_BASE_URL}/generate-dungeon`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -170,7 +167,7 @@ window.initDungeon = async function() {
         if (!res.ok) throw new Error("Server Error");
         const rawText = await res.text();
         const data = JSON.parse(rawText);
-        
+
         if (data.error) throw new Error(data.error);
 
         console.log("SERVER DATA RECEIVED:", data);
@@ -194,15 +191,30 @@ window.initDungeon = async function() {
             }
         }
 
-        const videoId = extractVideoID(url);
-        loadVideo(videoId);
+        // ... initDungeon function ke andar ...
 
-        setTimeout(() => {
-            const questSection = document.getElementById('quest-section');
-            if (questSection) {
-                questSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }, 2000);
+    const videoId = extractVideoID(url);
+    loadVideo(videoId);
+
+    // 🔥 FIX 404 IMAGES: (Ye code missing tha, isse add karo)
+    setTimeout(() => {
+        const allImages = document.querySelectorAll('img');
+        allImages.forEach(img => {
+            img.onerror = function() {
+                this.style.display = 'none'; // Broken image chupao
+                // Fallback Card dikhao
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.innerHTML = `
+                    <div style="border:1px dashed red; padding:10px; text-align:center; margin:10px 0;">
+                        <i class="fas fa-exclamation-triangle" style="color:red;"></i>
+                        <div style="font-size:0.8rem; color:#aaa;">DIAGRAM MISSING</div>
+                    </div>`;
+                this.parentNode.insertBefore(fallbackDiv, this);
+            };
+        });
+    }, 3000);
+
+// ...
 
     } catch (err) {
         console.error(err);
@@ -220,7 +232,7 @@ function extractVideoID(url) {
 }
 
 window.goFullScreen = function() {
-    var elem = document.getElementById("master-container"); 
+    var elem = document.getElementById("master-container");
     if (elem.requestFullscreen) elem.requestFullscreen();
     else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
     else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
@@ -240,30 +252,34 @@ function loadVideo(vidId) {
         height: '100%',
         width: '100%',
         videoId: vidId,
-        playerVars: { 
-            'autoplay': 1, 
-            'controls': 1, 
-            'rel': 0, 
-            'fs': 0,       
-            'modestbranding': 1 
+        playerVars: {
+            'autoplay': 1,
+            'controls': 1,
+            'rel': 0,
+            'fs': 0,
+            'modestbranding': 1
         },
-        events: { 
-            'onReady': onPlayerReady, 
-            'onStateChange': onPlayerStateChange 
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
         }
     });
 }
-
 function onPlayerReady(event) {
-    // 🔥 UPDATE: Timer set to 10 seconds for faster testing
-    nextTriggerTime = 10; 
-    currentQIndex = 0;
     if (window.audioSys) audioSys.startBGM();
-    console.log("Player Ready. First Quiz set for: " + nextTriggerTime + "s");
+    console.log("Player Ready. Waiting for playback to calculate AI timings...");
 }
 
+// --- PLAYER STATE CHANGE ---
 function onPlayerStateChange(event) {
     if (event.data == YT.PlayerState.PLAYING) {
+        
+        // 🔥 FIX: Calculate Timings ONLY when video starts playing (Non-Zero Duration)
+        if (!timingsCalculated) {
+            calculateQuizTimings();
+            timingsCalculated = true;
+        }
+
         checkInterval = setInterval(checkTime, 1000);
     } else {
         clearInterval(checkInterval);
@@ -274,12 +290,71 @@ function onPlayerStateChange(event) {
     }
 }
 
+// 🔥 ULTIMATE SMART QUIZ SCHEDULER
+function calculateQuizTimings() {
+    const duration = player.getDuration();
+    const totalQuestions = quizData.length;
+
+    // Reset timeline
+    quizTimestamps = [];
+
+    if (duration > 0 && totalQuestions > 0) {
+        // 1. Edge safety buffer (start + end)
+        const buffer = 30;
+        const playableDuration = duration - (buffer * 2);
+        if (playableDuration <= 0) return;
+
+        // 2. Smart Count: Even if AI gave 8, we use only 1–3 max (based on video length)
+        let maxQuizAllowed = 3;
+        if (duration < 240) maxQuizAllowed = 1;         // < 4 mins
+        else if (duration < 600) maxQuizAllowed = 2;    // < 10 mins
+        else maxQuizAllowed = 3;                        // longer videos
+
+        const finalQuizCount = Math.min(totalQuestions, maxQuizAllowed);
+
+        // 3. Interval logic
+        const interval = playableDuration / (finalQuizCount + 1);
+
+        for (let i = 1; i <= finalQuizCount; i++) {
+            let time = buffer + Math.floor(interval * i);
+
+            // Minor randomness to avoid rigidness
+            const variance = Math.floor(Math.random() * 8) - 4;  // ±4 sec
+            time = Math.max(buffer, Math.min(time + variance, duration - buffer));
+
+            quizTimestamps.push(time);
+        }
+    }
+
+    console.log("🎯 FINAL TIMINGS:", quizTimestamps.map(t => `${Math.floor(t / 60)}m ${t % 60}s`));
+}
+
+function checkTime() {
+    if (isQuizActive) return;
+    if (!isQuizSystemOnline) return;
+
+    if(player && player.getCurrentTime) {
+        const currentTime = player.getCurrentTime();
+
+        // 🔥 DOUBLE SAFETY: Video ke pehle 10 second me kuch mat karo
+        if (currentTime < 10) return; 
+
+        if (quizData.length > 0 && 
+            currentQIndex < quizTimestamps.length && 
+            currentTime >= quizTimestamps[currentQIndex]) {
+
+            console.log(`⚡ Triggering Quiz #${currentQIndex + 1} at ${Math.floor(currentTime)}s`);
+            triggerQuiz(quizData[currentQIndex]);
+        }
+    }
+}
+
 function unlockDungeonCompletion() {
-    if (isDungeonCleared) return; 
-    
+    if (isDungeonCleared) return;
+
     isDungeonCleared = true;
     console.log("DUNGEON CLEARED! UNLOCKING EXIT...");
-    
+
     const btn = document.querySelector('.complete-btn');
     if (btn) {
         btn.classList.add('unlocked');
@@ -287,27 +362,42 @@ function unlockDungeonCompletion() {
     }
 }
 
+let lastQuizTime = 0; // 🔥 Global variable add karna mat bhulna (top of file pe)
+
 function checkTime() {
     if (isQuizActive) return;
-    if (!isQuizSystemOnline) return; 
+    if (!isQuizSystemOnline) return;
 
     if(player && player.getCurrentTime) {
         const currentTime = player.getCurrentTime();
-        
-        // 🔥 UPDATE: Safe Check added here
-        if (quizData && quizData.length > 0 && 
-            currentTime >= nextTriggerTime && 
-            currentQIndex < quizData.length) {
+
+        // Safety: Start ke 10 sec me kuch mat karo
+        if (currentTime < 10) return; 
+
+        // 🔥 COOLDOWN CHECK: 
+        // Agar pichla quiz 30 second pehle hi khatam hua hai, to abhi ruk jao
+        // Bhale hi timestamp match ho raha ho.
+        if ((currentTime - lastQuizTime) < 30 && lastQuizTime !== 0) return;
+
+        if (quizData.length > 0 && 
+            currentQIndex < quizTimestamps.length && 
+            currentTime >= quizTimestamps[currentQIndex]) {
+
+            // Double Check: Kya humne ye sawal pehle hi dikha diya?
+            // (CurrentQIndex handle karega, bas timestamp verify karo)
             
-            console.log("Triggering Quiz #" + (currentQIndex + 1));
+            console.log(`⚡ Triggering Quiz #${currentQIndex + 1} at ${Math.floor(currentTime)}s`);
             triggerQuiz(quizData[currentQIndex]);
+            
+            // Last triggered time update karo
+            lastQuizTime = currentTime;
         }
     }
 }
 // --- QUIZ LOGIC ---
 function triggerQuiz(question) {
     isQuizActive = true;
-    player.pauseVideo();
+    if (player && typeof player.pauseVideo === "function") player.pauseVideo();
     if (window.audioSys) audioSys.play('success');
 
     const overlay = document.getElementById('quiz-overlay');
@@ -316,6 +406,9 @@ function triggerQuiz(question) {
 
     document.getElementById('q-text').innerText = question.question;
     const optDiv = document.getElementById('q-options');
+    
+    // 🔥 CRITICAL FIX: Remove 'locked' class so new buttons are clickable
+    optDiv.classList.remove('locked'); 
     optDiv.innerHTML = '';
 
     question.options.forEach((opt, i) => {
@@ -329,20 +422,30 @@ function triggerQuiz(question) {
 }
 
 window.handleAnswer = function(btn, selected, correct) {
-    if (btn.parentElement.classList.contains('locked')) return;
-    btn.parentElement.classList.add('locked');
+    const parent = document.getElementById('q-options');
+    
+    // Check if the container is already locked
+    if (parent.classList.contains('locked')) return;
+    
+    // Lock the container immediately to prevent multiple clicks
+    parent.classList.add('locked');
 
-    totalAnswered++; 
+    totalAnswered++;
 
     if (selected === correct) {
         correctAnswers++;
         btn.classList.add('correct');
         if (window.audioSys) audioSys.play('success');
-        setTimeout(() => { showGift(); }, 600);
+        
+        // Slight delay before showing gift
+        setTimeout(() => { showGift(); }, 800);
     } else {
         btn.classList.add('wrong');
         if (window.audioSys) audioSys.play('fail');
-        btn.parentElement.children[correct].classList.add('correct');
+        
+        // Show the correct answer automatically for learning
+        const allBtns = parent.querySelectorAll('.opt-btn');
+        if (allBtns[correct]) allBtns[correct].classList.add('correct');
 
         const resBtn = document.getElementById('resume-btn');
         resBtn.style.display = 'block';
@@ -350,7 +453,6 @@ window.handleAnswer = function(btn, selected, correct) {
         resBtn.style.background = "var(--neon-red)";
     }
 }
-
 function showGift() {
     document.getElementById('quiz-overlay').style.display = 'none';
     const giftOverlay = document.getElementById('gift-overlay');
@@ -361,29 +463,32 @@ function showGift() {
 window.resumeVideo = function() {
     document.getElementById('quiz-overlay').style.display = 'none';
     isQuizActive = false;
-    nextTriggerTime = player.getCurrentTime() + 60; 
-    currentQIndex++;
+    
+    // Set Cooldown Timestamp
+    if(player && player.getCurrentTime) {
+        lastQuizTime = player.getCurrentTime(); 
+    }
+
+    currentQIndex++; // Move to next
     player.playVideo();
     if (window.audioSys) audioSys.startBGM();
 }
 
-// =============================================================
-// 🔥 GRIMOIRE SYSTEM 🔥
-// =============================================================
-
 window.extractNotes = async function() {
     document.getElementById('project-list').innerHTML = '';
     document.getElementById('project-loading').classList.add('hidden');
-    
+
     const loading = document.getElementById('system-loading');
     const noteCard = document.getElementById('shadow-note-card');
     const list = document.getElementById('note-points');
 
     loading.classList.remove('hidden');
     noteCard.classList.add('hidden');
+    
+    // 🛑 Stop any previous audio if playing
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
 
     const url = localStorage.getItem('mission_url') || document.getElementById('yt-url').value;
-    
     let topic = "General Coding Concept";
     if(isManual) topic = document.getElementById('manual-text').value.substring(0, 200);
 
@@ -395,12 +500,35 @@ window.extractNotes = async function() {
         });
 
         const data = await res.json();
-        currentNoteData = data; 
+        currentNoteData = data;
+
+        // --- 🎧 PREPARE AUDIO TEXT (Clean Text for AI Voice) ---
+        let fullAudioText = `Here is your summary. ${data.summary}. `;
+        if(data.sections) {
+            data.sections.forEach(sec => {
+                fullAudioText += `Topic: ${sec.heading}. ${sec.content}. `;
+            });
+        }
+        // Remove special chars like *, #, brackets for smooth speaking
+        fullAudioText = fullAudioText.replace(/[*#\[\]]/g, '').replace(/["']/g, ""); 
+        // -------------------------------------------------------
 
         document.getElementById('note-title').innerText = data.title || "Extracted Intel";
-        
-        list.innerHTML = `<p style="color:#aaa; font-style:italic; margin-bottom:15px; border-left:3px solid var(--neon-purple); padding-left:10px;">${formatAIContent(data.summary)}</p>`;
-        
+
+        // 🔥 MODIFIED HEADER WITH AUDIO BUTTON
+        list.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px; gap: 10px;">
+                <p style="color:#aaa; font-style:italic; margin:0; flex:1; border-left:3px solid var(--neon-purple); padding-left:10px;">
+                    ${formatAIContent(data.summary)}
+                </p>
+                
+                <button id="audio-btn" onclick="toggleNoteAudio('${fullAudioText}')" 
+                    style="background:var(--neon-purple); border:none; color:white; padding:8px 15px; border-radius:20px; cursor:pointer; font-size:0.75rem; white-space:nowrap; display:flex; align-items:center; gap:5px; box-shadow: 0 0 10px rgba(189, 0, 255, 0.3);">
+                    <i class="fas fa-headphones"></i> LISTEN
+                </button>
+            </div>
+        `;
+
         if(data.sections) {
             data.sections.forEach(sec => {
                 list.innerHTML += `
@@ -423,7 +551,7 @@ window.extractNotes = async function() {
 
         loading.classList.add('hidden');
         noteCard.classList.remove('hidden');
-        
+
         const saveBtn = document.getElementById('save-note-btn');
         saveBtn.innerHTML = '<i class="fas fa-save"></i> SAVE';
         saveBtn.classList.remove('saved');
@@ -433,90 +561,61 @@ window.extractNotes = async function() {
         console.error(err);
     }
 }
+// ==========================================
+// 🎧 AUDIO SYSTEM LOGIC (NotebookLM Style)
+// ==========================================
+let isSpeaking = false;
 
-window.saveCurrentNote = function() {
-    if(!currentNoteData) return alert("No note to save!");
+window.toggleNoteAudio = function(text) {
+    const btn = document.getElementById('audio-btn');
 
-    let grimoire = JSON.parse(localStorage.getItem('saved_notes')) || [];
-    
-    const exists = grimoire.find(n => n.title === currentNoteData.title);
-    if(exists) {
-        alert("Note already in Grimoire!");
-        return;
+    if (isSpeaking) {
+        // Stop Audio
+        window.speechSynthesis.cancel();
+        isSpeaking = false;
+        if(btn) {
+            btn.innerHTML = '<i class="fas fa-headphones"></i> LISTEN';
+            btn.style.background = "var(--neon-purple)";
+            btn.classList.remove('pulse'); // Remove animation
+        }
+    } else {
+        // Start Audio
+        window.speechSynthesis.cancel(); // Safety clear
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Voice Selection: Try to find "Google US English" or "Female"
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v => v.name.includes("Google US English") || v.name.includes("Female"));
+        if (preferredVoice) utterance.voice = preferredVoice;
+
+        utterance.rate = 1.0; 
+        utterance.pitch = 1.0;
+
+        // When audio finishes naturally
+        utterance.onend = function() {
+            isSpeaking = false;
+            if(btn) {
+                btn.innerHTML = '<i class="fas fa-headphones"></i> LISTEN';
+                btn.style.background = "var(--neon-purple)";
+                btn.classList.remove('pulse');
+            }
+        };
+
+        window.speechSynthesis.speak(utterance);
+        isSpeaking = true;
+        
+        if(btn) {
+            btn.innerHTML = '<i class="fas fa-stop"></i> STOP';
+            btn.style.background = "var(--neon-red)";
+            btn.classList.add('pulse'); // Add simple animation
+        }
     }
+};
 
-    const newNote = {
-        id: Date.now(),
-        title: currentNoteData.title,
-        date: new Date().toLocaleDateString(),
-        data: currentNoteData
-    };
-
-    grimoire.unshift(newNote); 
-    localStorage.setItem('saved_notes', JSON.stringify(grimoire));
-
-    const btn = document.getElementById('save-note-btn');
-    btn.innerHTML = '<i class="fas fa-check"></i> SAVED';
-    btn.classList.add('saved');
-    
-    if(window.audioSys) audioSys.play('success');
+// Chrome Bug Fix: Load voices immediately
+if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
 }
-
-window.openGrimoire = function() {
-    const modal = document.getElementById('grimoire-overlay');
-    const container = document.getElementById('grimoire-list');
-    const grimoire = JSON.parse(localStorage.getItem('saved_notes')) || [];
-
-    container.innerHTML = "";
-
-    if(grimoire.length === 0) {
-        container.innerHTML = "<div style='padding:20px; text-align:center; color:#777;'>GRIMOIRE IS EMPTY.</div>";
-    }
-
-    grimoire.forEach((note, index) => {
-        container.innerHTML += `
-            <div class="saved-note-card">
-                <div style="display:flex; justify-content:space-between;">
-                    <h4 style="margin:0; color:var(--neon-blue);">${note.title}</h4>
-                    <small style="color:#555;">${note.date}</small>
-                </div>
-                <div style="margin-top:10px;">
-                    <button class="action-mini-btn" onclick="loadSavedNote(${index})">READ</button>
-                    <button class="action-mini-btn delete" onclick="deleteNote(${index})"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-        `;
-    });
-
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-}
-
-window.loadSavedNote = function(index) {
-    const grimoire = JSON.parse(localStorage.getItem('saved_notes'));
-    const note = grimoire[index].data;
-    
-    document.getElementById('grimoire-overlay').style.display = 'none';
-    
-    document.getElementById('note-title').innerText = note.title;
-    const list = document.getElementById('note-points');
-    list.innerHTML = `<p style="color:#aaa; font-style:italic;">${formatAIContent(note.summary)}</p>`;
-    
-    note.sections.forEach(sec => {
-        list.innerHTML += `<div><strong style="color:var(--neon-blue)">${sec.heading}</strong><br>${formatAIContent(sec.content)}</div><br>`;
-    });
-    
-    document.getElementById('shadow-note-card').classList.remove('hidden');
-    document.getElementById('save-note-btn').style.display = 'none'; 
-}
-
-window.deleteNote = function(index) {
-    let grimoire = JSON.parse(localStorage.getItem('saved_notes'));
-    grimoire.splice(index, 1);
-    localStorage.setItem('saved_notes', JSON.stringify(grimoire));
-    openGrimoire(); 
-}
-
 // =============================================================
 // 🔥 QUEST SYSTEM 🔥
 // =============================================================
@@ -526,7 +625,7 @@ window.fetchProjects = async function() {
     document.getElementById('system-loading').classList.add('hidden');
     const list = document.getElementById('project-list');
     list.innerHTML = '';
-    
+
     const loading = document.getElementById('project-loading');
     loading.classList.remove('hidden');
 
@@ -548,7 +647,7 @@ window.fetchProjects = async function() {
         });
 
         const projects = await res.json();
-        currentGeneratedProjects = projects; 
+        currentGeneratedProjects = projects;
 
         loading.classList.add('hidden');
         renderProjects(projects);
@@ -576,7 +675,7 @@ function renderProjects(projects) {
                 <div style="margin: 10px 0; font-size: 0.8rem; color:#aaa;">
                     <i class="fas fa-microchip"></i> SKILLS: ${p.requiredSkills ? p.requiredSkills.join(', ') : 'General'}
                 </div>
-                
+
                 <button id="btn-quest-${index}" class="accept-btn" onclick="acceptQuest(${index})">
                     <i class="fas fa-plus"></i> ACCEPT QUEST
                 </button>
@@ -622,7 +721,7 @@ window.summonShadow = async function() {
     setTimeout(() => {
         window.open('shadow-tutor.html', 'ShadowTutor', 'width=400,height=600,right=20,bottom=20');
         overlay.style.display = 'none';
-    }, 3000);
+    }, 3001);
 }
 
 let searchTimeout;
@@ -724,7 +823,7 @@ window.claimReward = function() {
     const giftOverlay = document.getElementById('gift-overlay');
     giftOverlay.classList.add('hidden');
     giftOverlay.style.display = 'none';
-    
+
     sessionXP += 50;
     console.log(`System: +50 XP Added to Buffer (Total: ${sessionXP})`);
 
@@ -735,15 +834,15 @@ window.claimReward = function() {
 
     const videoEl = document.getElementById('reward-video');
     const sourceEl = videoEl.querySelector('source');
-    
-    if (sourceEl) sourceEl.src = selectedVideo; 
+
+    if (sourceEl) sourceEl.src = selectedVideo;
     else videoEl.src = selectedVideo;
 
     videoEl.load();
     const rewardOverlay = document.getElementById('reward-overlay');
     rewardOverlay.classList.remove('hidden');
-    rewardOverlay.style.display = 'block'; 
-    
+    rewardOverlay.style.display = 'block';
+
     if (window.audioSys && window.audioSys.sounds.bgm) audioSys.sounds.bgm.pause();
     videoEl.play().catch(e => console.log("Audio permission needed:", e));
     videoEl.onended = function() { closeReward(); };
@@ -753,7 +852,7 @@ window.closeReward = function() {
     const videoEl = document.getElementById('reward-video');
     videoEl.pause();
     videoEl.currentTime = 0;
-    
+
     const rewardOverlay = document.getElementById('reward-overlay');
     rewardOverlay.classList.add('hidden');
     rewardOverlay.style.display = 'none';
@@ -761,7 +860,6 @@ window.closeReward = function() {
 
     resumeVideo();
 }
-
 // 🔥 FINISH DUNGEON (COMMIT SESSION XP)
 window.finishDungeon = function() {
     if (!isDungeonCleared) {
@@ -786,13 +884,18 @@ window.finishDungeon = function() {
 
     // 🔥 SAVE EVERYTHING NOW
     let totalEarned = sessionXP + rankXP;
-    
+
     // 1. Local Save
     let currentPending = parseInt(localStorage.getItem('add_xp') || "0");
-    localStorage.setItem('add_xp', currentPending + totalEarned); 
+    localStorage.setItem('add_xp', currentPending + totalEarned);
 
-    // 2. Cloud Save
-    syncXPToCloud(totalEarned); 
+    // 2. Cloud Save (Safe Check)
+    if (typeof window.syncXPToCloud === "function") {
+        window.syncXPToCloud(totalEarned);
+    } else {
+        console.log("⚠️ Database not connected. XP saved locally only.");
+    }
+   
 
     document.getElementById('final-accuracy').innerText = accuracy + "%";
     document.getElementById('final-xp').innerText = "+" + totalEarned + " XP";
@@ -805,11 +908,9 @@ window.finishDungeon = function() {
         if (window.audioSys) audioSys.play('levelUp');
     }
 }
-
-
 // --- GUILD ACTIONS ---
 
-// 1. दोस्त की गिल्ड जॉइन करने का फंक्शन
+// 1. Join Friend Guild
 window.joinFriendGuild = function() {
     const codeInput = document.getElementById('friend-code-input');
     const code = codeInput.value.trim();
@@ -819,71 +920,228 @@ window.joinFriendGuild = function() {
         return;
     }
 
-    // यहाँ पर वह लॉजिक आएगा जो सर्वर से चेक करेगा कि कोड सही है या नहीं।
-    // अभी के लिए हम बस एक अलर्ट दिखा रहे हैं।
     console.log("Joining guild with code:", code);
     alert(`Attempting to join guild: ${code}\n(Backend logic required here)`);
 
-    // सफल होने पर, इनपुट बॉक्स खाली करें
     codeInput.value = "";
 }
 
-// 2. वापस जाने (Back) का फंक्शन
+// 2. Go Back Function
 window.goBackFromGuild = function() {
-    // इस फंक्शन से आप तय कर सकते हैं कि "Back" बटन दबाने पर क्या होगा।
-    // उदाहरण के लिए, यह मौजूदा पॉप-अप को बंद करके कोई पिछला मेनू खोल सकता है।
-    // अभी के लिए, हम इसे सिर्फ बंद कर रहे हैं (CLOSE बटन जैसा)।
     closeModal('guild-modal');
-
-    // अगर आपके पास कोई 'Main Menu' पॉप-अप है, तो आप उसे यहाँ खोल सकते हैं:
-    // openModal('main-menu-modal');
 }
 
-// --- HELPER: CLOSE MODAL (अगर पहले से नहीं है) ---
+// --- HELPER: CLOSE MODAL ---
 window.closeModal = function(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
+    const el = document.getElementById(modalId);
+    if(el) el.classList.add('hidden');
 }
 
+// =============================================================
+// 🔥 ACTIVATES THE VISUAL GAME (RUNE LINK / OWL) - FIXED
+// =============================================================
+window.activateRuneMode = async function(retryCount = 0) { // Step 1: Add retry counter
 
-// ==========================================
-// 🎮 RUNE LINK ACTIVATOR (Logic)
-// ==========================================
-
-// NOTE: Humne 'window.' lagaya hai taaki HTML isse dhoond sake
-window.activateRuneMode = function() {
-    destroyYouTubePlayer();  
-
-    console.log(">> INITIATING RUNE LINK PROTOCOL...");
-
-    // 1. Button Feedback (Loading Animation)
-    const btn = document.querySelector('button[onclick="activateRuneMode()"]');
-    if(btn) {
-        btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> GENERATING...`;
-        btn.style.opacity = "0.8";
+    // 1. Player Pause
+    if (typeof player !== "undefined" && player && typeof player.pauseVideo === "function") {
+        player.pauseVideo();
     }
 
-    // 2. MOCK DATA (Digital Electronics Topic)
-    // (Jab asli AI banega, tab hum yahan video title fetch karenge)
-    const currentTopic = "Digital Electronics: Logic Gates"; 
+    // UI: Button Loading State
+    const btn = document.getElementById('runeBtn') || document.querySelector('button[onclick="activateRuneMode()"]');
+    if(btn) {
+        if(!btn.dataset.originalText) btn.dataset.originalText = btn.innerHTML;
+        btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> SYNCING... (${retryCount + 1})`;
+        btn.style.pointerEvents = "none";
+    }
 
-    const runeData = {
-        title: currentTopic,
-        pairs: [
-            { id: 1, term: "AND Gate", def: "Output is HIGH only if all inputs are HIGH." },
-            { id: 2, term: "OR Gate", def: "Output is HIGH if at least one input is HIGH." },
-            { id: 3, term: "NOT Gate", def: "Inverts the input signal (0 becomes 1, 1 becomes 0)." },
-            { id: 4, term: "NAND Gate", def: "Universal gate; behaves like AND followed by NOT." },
-            { id: 5, term: "XOR Gate", def: "Output is HIGH only if inputs are different." },
-            { id: 6, term: "Truth Table", def: "A chart showing all possible input-output combinations." }
-        ]
+    // 🔥 STEP 2: LOOP PROTECTION (Stop after 3 retries)
+    if (retryCount > 3) {
+        console.error("⛔ Recursion Limit Reached: No new games found.");
+        if(btn) {
+            btn.innerHTML = btn.dataset.originalText;
+            btn.style.pointerEvents = "auto";
+        }
+        alert("⚠️ SYSTEM OVERLOAD: No alternative simulations found for this topic right now.\n\nThe Architect suggests trying a different video or clearing your blacklist.");
+        return;
+    }
+
+    try {
+        const input = document.getElementById('yt-url');
+        const url = (input && input.value) || localStorage.getItem('mission_url');
+
+        if(!url) {
+            alert("No Video URL Found!");
+            return;
+        }
+
+        console.log(`📡 Calling OWL Agent (Attempt ${retryCount + 1})...`);
+
+        const response = await fetch(`${API_BASE_URL}/api/process-video`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoUrl: url })
+        });
+
+        if (!response.ok) throw new Error("Server Connection Failed");
+
+        const result = await response.json();
+        console.log("🟢 OWL Response:", result);
+
+        let gameData = null;
+        if (result.type === 'FOUND' || result.type === 'GENERATED') {
+            gameData = result.data;
+
+            // 🔥 STEP 3: SMART BLACKLIST CHECK
+            const blacklist = JSON.parse(localStorage.getItem('banned_games')) || [];
+            
+            if (gameData.url && blacklist.includes(gameData.url)) {
+                console.warn(`⚠️ Attempt ${retryCount + 1}: Retrieved banned game. Rerolling...`);
+                
+                // Recursive call with incremented counter
+                return activateRuneMode(retryCount + 1); 
+            }
+        }
+
+        // 4. Game Launch Logic
+        if (gameData) {
+            console.log(`🎯 GAME READY: ${gameData.name || gameData.gameTitle}`);
+
+            // CASE A: External Game -> SHOW CUSTOM POPUP
+            if (gameData.url && (!gameData.pairs || gameData.pairs.length === 0)) {
+                
+                if (gameData.url.includes("game-lab.html")) {
+                    window.location.href = gameData.url;
+                } else {
+                    showGameLaunchModal(gameData);
+                }
+            }
+            // CASE B: Internal Game
+            else {
+                const unifiedData = {
+                    title: gameData.gameTitle || gameData.name || "Unknown Topic",
+                    pairs: gameData.pairs || [],
+                    theme: "cyber"
+                };
+                localStorage.setItem("currentRuneLevel", JSON.stringify(unifiedData));
+                window.location.href = "game-lab.html";
+            }
+
+        } else {
+            alert("⚠️ OWL could not generate a game for this video. Try another topic.");
+        }
+
+    } catch (err) {
+        console.error("Master Agent Failure:", err);
+        alert(`Connection Failed: ${err.message}`);
+    } finally {
+        // Reset button only if we are NOT rerolling (recursion handles its own state)
+        if(btn && retryCount === 0 && !document.querySelector('.match-score')){ 
+             // Note: If modal opens, we keep loading state until user action, 
+             // but here we just reset for safety if not recursing.
+             if(!document.getElementById('custom-launch-modal')) {
+                 btn.innerHTML = btn.dataset.originalText;
+                 btn.style.pointerEvents = "auto";
+             }
+        }
+    }
+};
+// =============================================================
+// 🔥 UPDATED: GAME LAUNCHER WITH REROLL SYSTEM
+// =============================================================
+
+function showGameLaunchModal(gameData) {
+    // 1. Cleanup Old Modal
+    const oldModal = document.getElementById('custom-launch-modal');
+    if(oldModal) oldModal.remove();
+
+    // 2. Generate Random "Match Score" (Just for Immersion)
+    const matchScore = Math.floor(Math.random() * (99 - 75) + 75); 
+
+    // 3. Create Overlay
+    const modalDiv = document.createElement('div');
+    modalDiv.id = 'custom-launch-modal';
+
+    // 4. Modal HTML (With Reroll & Feedback)
+    modalDiv.innerHTML = `
+        <div>
+            <div class="match-score">COMPATIBILITY: ${matchScore}%</div>
+            
+            <i class="fas fa-rocket" style="font-size: 3rem; color: #ffd700; margin-bottom: 20px;"></i>
+            
+            <h2 style="color: #fff; margin: 0 0 10px 0; font-family: 'Orbitron', sans-serif;">GAME FOUND!</h2>
+            <p style="color: #00eaff; font-size: 1.1rem; margin-bottom: 5px;">${gameData.name || "Unknown Game"}</p>
+            <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">The System has retrieved a training simulation.</p>
+
+            <div id="feedback-options">
+                <p style="color:var(--neon-red); font-size:0.8rem;">REASON FOR REROLL?</p>
+                <div style="display:flex; gap:5px; justify-content:center;">
+                    <button class="feedback-chip" onclick="handleRejection('${gameData.url}', 'boring')">Too Boring</button>
+                    <button class="feedback-chip" onclick="handleRejection('${gameData.url}', 'irrelevant')">Irrelevant</button>
+                    <button class="feedback-chip" onclick="handleRejection('${gameData.url}', 'broken')">Broken Link</button>
+                </div>
+            </div>
+
+            <div class="modal-actions" id="main-actions">
+                <button id="reroll-btn" onclick="showFeedbackUI()">
+                    <i class="fas fa-sync-alt"></i> REROLL
+                </button>
+                
+                <button id="launch-btn-now" style="
+                    background: linear-gradient(45deg, #00eaff, #0077ff); border: none; 
+                    padding: 12px 30px; color: #000; font-weight: bold; border-radius: 5px; 
+                    cursor: pointer; font-size: 1rem; transition: transform 0.2s;">
+                    🚀 LAUNCH
+                </button>
+            </div>
+            
+            <br>
+            <button id="cancel-launch-btn" style="background:none; border:none; color:#555; cursor:pointer; text-decoration:underline;">Cancel</button>
+        </div>
+    `;
+
+    document.body.appendChild(modalDiv);
+
+    // --- EVENT LISTENERS ---
+
+    // Launch
+    document.getElementById('launch-btn-now').onclick = function() {
+        window.open(gameData.url, '_blank');
+        modalDiv.remove();
+        // Optional: Save as "Liked" internally if needed
     };
 
-    // 3. Save to Memory & Redirect
+    // Cancel
+    document.getElementById('cancel-launch-btn').onclick = function() {
+        modalDiv.remove();
+    };
+}
+
+// --- UI LOGIC: Show Feedback Options ---
+window.showFeedbackUI = function() {
+    document.getElementById('main-actions').style.display = 'none'; // Hide buttons
+    document.getElementById('feedback-options').style.display = 'flex'; // Show reasons
+}
+
+// --- LOGIC: Handle Rejection & Reroll ---
+window.handleRejection = function(gameUrl, reason) {
+    console.log(`❌ Game Rejected: ${reason}`);
+
+    // 1. Save to Blacklist (Local Storage)
+    let blacklist = JSON.parse(localStorage.getItem('banned_games')) || [];
+    blacklist.push(gameUrl);
+    localStorage.setItem('banned_games', JSON.stringify(blacklist));
+
+    // 2. Close Modal
+    const oldModal = document.getElementById('custom-launch-modal');
+    if(oldModal) oldModal.remove();
+
+    // 3. Trigger Reroll (Call Agent Again)
+    // Delay to make it feel like "Processing"
+    const btn = document.getElementById('runeBtn');
+    if(btn) btn.innerHTML = `<i class="fas fa-cog fa-spin"></i> ADAPTING...`;
+
     setTimeout(() => {
-        // Data Browser Memory me save karo
-        localStorage.setItem("currentRuneLevel", JSON.stringify(runeData));
-        
-        // Game Lab par jao
-        window.location.href = "game-lab.html";
-    }, 1000); 
-};
+        activateRuneMode(); // Call the main function again to fetch a NEW game
+    }, 1000);
+}

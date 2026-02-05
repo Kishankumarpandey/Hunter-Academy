@@ -583,3 +583,182 @@ body.mana-active #quest-section { opacity: 0.1; pointer-events: none; transition
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+/* =========================================
+   🔥 CUSTOM LAUNCH MODAL (FIXED & POLISHED)
+   ========================================= */
+
+#custom-launch-modal {
+    position: fixed !important;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 2147483647 !important; /* Highest possible Z-Index */
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeInModal 0.3s ease-out;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Modal Box Container */
+#custom-launch-modal > div {
+    background: linear-gradient(135deg, rgba(10, 20, 30, 0.95), rgba(5, 5, 10, 1));
+    border: 2px solid var(--neon-blue);
+    box-shadow: 0 0 50px rgba(0, 234, 255, 0.2), inset 0 0 20px rgba(0, 234, 255, 0.05);
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 450px;
+    width: 90%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative Top Line */
+#custom-launch-modal > div::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+    background: var(--neon-blue);
+    box-shadow: 0 0 15px var(--neon-blue);
+}
+
+/* Icon Animation */
+#custom-launch-modal i.fa-rocket {
+    animation: rocketFloat 2s infinite ease-in-out;
+    filter: drop-shadow(0 0 15px var(--neon-gold));
+}
+
+@keyframes rocketFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Launch Button Hover */
+#launch-btn-now:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 0 25px rgba(0, 234, 255, 0.6) !important;
+}
+/* =========================================
+   🔥 REROLL & FEEDBACK SYSTEM
+   ========================================= */
+
+/* Action Buttons Container in Modal */
+.modal-actions {
+    display: flex; gap: 15px; justify-content: center; margin-top: 25px;
+}
+
+/* Reroll Button (Orange/Red) */
+#reroll-btn {
+    background: rgba(255, 69, 0, 0.1); 
+    border: 1px solid var(--neon-red); 
+    color: var(--neon-red);
+    padding: 12px 20px; font-weight: bold; border-radius: 5px; 
+    cursor: pointer; font-family: 'Orbitron'; transition: 0.3s;
+}
+#reroll-btn:hover {
+    background: var(--neon-red); color: black; box-shadow: 0 0 20px var(--neon-red);
+}
+
+/* Compatibility Badge */
+.match-score {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(0, 255, 157, 0.1); border: 1px solid var(--neon-green);
+    color: var(--neon-green); font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;
+    font-family: 'Share Tech Mono';
+}
+
+/* Feedback Options (Hidden initially) */
+#feedback-options {
+    display: none; flex-direction: column; gap: 10px; margin-top: 15px;
+    animation: slideDown 0.3s ease-out;
+}
+.feedback-chip {
+    background: #111; border: 1px solid #444; color: #aaa;
+    padding: 8px; font-size: 0.8rem; cursor: pointer; border-radius: 4px;
+    transition: 0.2s;
+}
+.feedback-chip:hover { border-color: var(--neon-red); color: white; }
+
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }    
+/* =========================================
+   🔥 GUILD FAMILIAR (PEEKING PET)
+   ========================================= */
+
+.familiar-wrapper {
+    position: fixed;
+    bottom: -60px; /* Initially half hidden */
+    right: 100px;  /* Positioned next to other buttons */
+    z-index: 5000;
+    width: 150px;
+    height: 150px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+}
+
+/* Hover Effect: Pop Up */
+.familiar-wrapper:hover {
+    bottom: 0px; /* Full Head Visible */
+    transform: scale(1.1);
+}
+
+.pet-img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 -5px 15px rgba(255, 215, 0, 0.3)); /* Gold Glow */
+    animation: breathing 3s infinite ease-in-out;
+}
+
+/* Breathing Animation (Alive feel) */
+@keyframes breathing {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(3px); }
+}
+
+/* 🔥 STATUS CARD (Glassmorphism) */
+.familiar-card {
+    position: absolute;
+    bottom: 110%; /* Above the pet */
+    right: -20px;
+    width: 220px;
+    background: rgba(10, 15, 30, 0.95);
+    border: 1px solid var(--neon-gold);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+    backdrop-filter: blur(10px);
+    font-family: 'Rajdhani', sans-serif;
+    animation: fadePopup 0.3s ease-out;
+    text-align: left;
+}
+
+.card-header {
+    font-weight: bold; color: white; display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px; font-size: 1.1rem;
+}
+.online-dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 5px #00ff00; }
+
+.card-body { font-size: 0.9rem; color: #ccc; }
+.activity-row { margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
+
+.mood-badge {
+    display: inline-block; background: rgba(189, 0, 255, 0.2); 
+    border: 1px solid var(--neon-purple); color: #e0b0ff;
+    padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;
+}
+
+.card-footer { margin-top: 10px; text-align: center; border-top: 1px solid #333; padding-top: 8px; }
+
+.shadow-peek-btn {
+    background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue);
+    padding: 5px 10px; font-family: 'Orbitron'; font-size: 0.7rem; cursor: pointer;
+    border-radius: 4px; transition: 0.3s; width: 100%;
+}
+.shadow-peek-btn:hover { background: var(--neon-blue); color: black; box-shadow: 0 0 10px var(--neon-blue); }
+
+.hidden { display: none !important; }
+
+@keyframes fadePopup {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -1,5 +1,11 @@
 // js/game-map.js
 
+// 🛑 FIX 1: Import line hatayi hai taaki "SyntaxError" na aaye.
+// Hum mankar chal rahe hain ki 'hunter-db.js' HTML me pehle load ho chuka hai.
+const syncXPToCloud = window.syncXPToCloud || function(xp) { 
+    console.log("⚠️ Cloud Sync Skipped (Function not loaded)"); 
+};
+
 // =============================================================
 // 🔥 1. INITIALIZATION & LOAD
 // =============================================================
@@ -9,17 +15,16 @@ let previousLevel = 0;
 window.onload = function() {
     updatePlayerStats(); 
     loadRecentDungeons(); 
-    checkDailyQuest();
-    
+    if(typeof initSpotlightEffect === 'function') initSpotlightEffect();
     // Inject Header Controls if Roadmap is already open
-    if(!document.getElementById('roadmap-overlay').classList.contains('hidden')) {
+    if(document.getElementById('roadmap-overlay') && !document.getElementById('roadmap-overlay').classList.contains('hidden')) {
         injectHeaderControls();
     }
 
     const userStr = localStorage.getItem('user_info');
     if(userStr) {
         const user = JSON.parse(userStr);
-        document.getElementById('player-name').innerText = user.displayName.toUpperCase();
+        if(document.getElementById('player-name')) document.getElementById('player-name').innerText = user.displayName.toUpperCase();
         const avatar = document.querySelector('.avatar-img');
         if(avatar && user.photoURL) avatar.src = user.photoURL;
     }
@@ -36,17 +41,23 @@ function updatePlayerStats() {
     
     if (previousLevel !== 0 && currentLevel > previousLevel) {
         showLevelUp(previousLevel, currentLevel);
-        if(window.audioSys) audioSys.play('levelUp'); 
+        if(window.audioSys && window.audioSys.play) window.audioSys.play('levelUp'); 
     }
     previousLevel = currentLevel; 
 
-    document.getElementById('player-lvl').innerText = currentLevel;
-    document.getElementById('player-rank').innerText = getRankName(currentLevel);
-    document.getElementById('stat-str').innerText = 10 + (currentLevel * 2);
-    document.getElementById('stat-int').innerText = 10 + (currentLevel * 2);
-    document.getElementById('stat-agi').innerText = 10 + (currentLevel * 1);
-    document.getElementById('xp-text').innerText = `${currentBarXP} / 100 XP`;
-    document.getElementById('xp-bar').style.width = `${(currentBarXP / 100) * 100}%`;
+    const elLvl = document.getElementById('player-lvl');
+    if(elLvl) elLvl.innerText = currentLevel;
+    
+    const elRank = document.getElementById('player-rank');
+    if(elRank) elRank.innerText = getRankName(currentLevel);
+
+    // Update Stats UI
+    if(document.getElementById('stat-str')) document.getElementById('stat-str').innerText = 10 + (currentLevel * 2);
+    if(document.getElementById('stat-int')) document.getElementById('stat-int').innerText = 10 + (currentLevel * 2);
+    if(document.getElementById('stat-agi')) document.getElementById('stat-agi').innerText = 10 + (currentLevel * 1);
+    
+    if(document.getElementById('xp-text')) document.getElementById('xp-text').innerText = `${currentBarXP} / 100 XP`;
+    if(document.getElementById('xp-bar')) document.getElementById('xp-bar').style.width = `${(currentBarXP / 100) * 100}%`;
 }
 
 function getRankName(level) {
@@ -64,14 +75,19 @@ function getRankName(level) {
 
 function showLevelUp(oldLvl, newLvl) {
     const overlay = document.getElementById('levelup-overlay');
-    document.getElementById('lvl-old').innerText = oldLvl;
-    document.getElementById('lvl-new').innerText = newLvl;
+    if(!overlay) return;
+    const oldEl = document.getElementById('lvl-old');
+    const newEl = document.getElementById('lvl-new');
+    if(oldEl) oldEl.innerText = oldLvl;
+    if(newEl) newEl.innerText = newLvl;
+    
     overlay.classList.remove('hidden');
     overlay.style.display = 'flex';
 }
 
 window.closeLevelUp = function() {
-    document.getElementById('levelup-overlay').style.display = 'none';
+    const overlay = document.getElementById('levelup-overlay');
+    if(overlay) overlay.style.display = 'none';
 }
 
 // =============================================================
@@ -92,7 +108,7 @@ async function enterGate() {
 
     try {
         console.log("📡 Contacting Server...");
-        const res = await fetch('/generate-dungeon', {
+        const res = await fetch('http://localhost:3001/generate-dungeon', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ videoUrl: url })
@@ -106,7 +122,7 @@ async function enterGate() {
 
         saveHistory({
             url: url,
-            title: data.summary[0] || "Unknown Dungeon",
+            title: (data.summary && data.summary[0]) ? data.summary[0] : "Unknown Dungeon",
             thumb: `https://img.youtube.com/vi/${getYouTubeID(url)}/mqdefault.jpg`,
             timestamp: Date.now()
         });
@@ -127,8 +143,10 @@ async function enterGate() {
         btn.style.background = "";
     }
 }
+window.enterGate = enterGate;
 
 function getYouTubeID(url) {
+    if(!url) return "";
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
@@ -142,15 +160,10 @@ function saveHistory(newEntry) {
     localStorage.setItem('dungeon_history', JSON.stringify(history));
 }
 
-function startMission(videoUrl) {
-    localStorage.setItem('mission_url', videoUrl);
-    document.body.style.opacity = "0";
-    setTimeout(() => window.location.href = 'study-game.html?fresh=' + Date.now(), 500);
-
-}
-
 function loadRecentDungeons() {
     const grid = document.getElementById('recents-grid');
+    if(!grid) return;
+
     const history = JSON.parse(localStorage.getItem('dungeon_history')) || [];
     
     if(history.length === 0) {
@@ -173,78 +186,251 @@ function loadRecentDungeons() {
     `).join('');
 }
 
-window.startMission = startMission;
-window.removeFromHistory = function(e, url) { e.stopPropagation(); let history = JSON.parse(localStorage.getItem('dungeon_history')) || []; history = history.filter(h => h.url !== url); localStorage.setItem('dungeon_history', JSON.stringify(history)); loadRecentDungeons(); }
+window.startMission = function(videoUrl) {
+    localStorage.setItem('mission_url', videoUrl);
+    document.body.style.opacity = "0";
+    setTimeout(() => window.location.href = 'study-game.html?fresh=' + Date.now(), 500);
+}
+
+window.removeFromHistory = function(e, url) { 
+    e.stopPropagation(); 
+    let history = JSON.parse(localStorage.getItem('dungeon_history')) || []; 
+    history = history.filter(h => h.url !== url); 
+    localStorage.setItem('dungeon_history', JSON.stringify(history)); 
+    loadRecentDungeons(); 
+}
+
 function clearHistory() { if(confirm("DELETE DUNGEON LOGS?")) { localStorage.removeItem('dungeon_history'); loadRecentDungeons(); } }
+window.clearHistory = clearHistory;
 
 // =============================================================
-// 🔥 5. QUEST LOGIC
+// 🔥 5. QUEST LOGIC (FIXED SELECTORS & DATE LOCK) 🛡️
 // =============================================================
+
+let questTimerInterval; 
 
 function checkDailyQuest() {
-    const COOLDOWN_TIME = 4 * 60 * 60 * 1000; 
-    const lastTime = parseInt(localStorage.getItem('last_quest_time') || "0");
-    if (Date.now() - lastTime > COOLDOWN_TIME) showQuestOverlay();
+    const lastTrainingDate = localStorage.getItem('last_training_date');
+    const todayDate = new Date().toDateString();
+
+    if (lastTrainingDate === todayDate) {
+        console.log("System: Daily Limit Reached.");
+        showCooldownUI(); 
+    } else {
+        console.log("System: New Quest Available.");
+        showQuestOverlay();
+    }
 }
 
-window.forceDailyQuest = function() { showQuestOverlay(); }
 
+window.forceDailyQuest = function() { 
+    checkDailyQuest(); 
+}
+
+// --- CASE 1: QUEST BAAKI HAI ---
 function showQuestOverlay() {
-    document.getElementById('system-alert').classList.remove('hidden');
-    document.getElementById('system-alert').style.display = 'flex';
-    resetQuestUI();
-    if(window.audioSys) audioSys.play('click');
+    const alertBox = document.getElementById('system-alert');
+    if(!alertBox) return console.error("❌ 'system-alert' not found in HTML");
+
+    // 🛑 FIX 2: Using '.alert-box' instead of '.modal-box' to match HTML
+    const modalBox = alertBox.querySelector('.alert-box'); 
+    
+    if(!modalBox) return console.error("❌ '.alert-box' class not found inside system-alert");
+
+    alertBox.classList.remove('hidden');
+    alertBox.style.display = 'flex';
+    
+    // Inject Normal Quest Content
+    modalBox.innerHTML = `
+        <div class="alert-header"><i class="fas fa-exclamation-circle"></i> SYSTEM ALERT</div>
+        <div class="alert-content">
+            <h3 style="color:var(--neon-blue); margin:0 0 5px 0;">DAILY QUEST: PREPARATION</h3>
+            <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Complete training to level up.</p>
+            <div class="quest-list">
+                <div class="quest-item" onclick="toggleTask(this)">
+                    <input type="checkbox"><span>10 Push-ups (Strength +1)</span>
+                </div>
+                <div class="quest-item" onclick="toggleTask(this)">
+                    <input type="checkbox"><span>Hold Breath 20s (Focus +1)</span>
+                </div>
+                <div class="quest-item" onclick="toggleTask(this)">
+                    <input type="checkbox"><span>1 min Meditation (Mana +1)</span>
+                </div>
+            </div>
+            <div class="alert-actions">
+                <button id="claim-btn" class="action-q-btn btn-claim" onclick="completeDailyQuest()">INCOMPLETE</button>
+                <button class="action-q-btn btn-skip" onclick="skipDailyQuest()">SKIP</button>
+            </div>
+        </div>
+    `;
+
+    if(window.audioSys && window.audioSys.play) window.audioSys.play('click');
 }
 
-function resetQuestUI() {
-    document.querySelectorAll('.quest-item input').forEach(input => {
-        if(!input.disabled) { input.checked = false; input.parentElement.classList.remove('completed'); }
-    });
-    const btn = document.getElementById('claim-btn');
-    btn.innerText = "INCOMPLETE"; btn.classList.remove('ready', 'btn-claim'); btn.classList.add('btn-claim');
+// --- CASE 2: QUEST DONE (COOLDOWN) ---
+function showCooldownUI() {
+    const alertBox = document.getElementById('system-alert');
+    if(!alertBox) return;
+
+    // 🛑 FIX 2: Matched class name here too
+    const modalBox = alertBox.querySelector('.alert-box');
+    if(!modalBox) return;
+
+    alertBox.classList.remove('hidden');
+    alertBox.style.display = 'flex';
+
+    // Inject Timer Content
+    modalBox.innerHTML = `
+        <div style="text-align:center; padding: 20px;">
+            <i class="fas fa-lock" style="font-size:3rem; color:#ff3333; margin-bottom:15px; text-shadow: 0 0 15px red;"></i>
+            <h2 style="color:#ff3333; font-family:'Orbitron'; margin:0;">SYSTEM LIMIT REACHED</h2>
+            <p style="color:#aaa; margin-top:10px;">Recovery in progress. Next Quest:</p>
+            
+            <div id="quest-countdown" style="font-size: 2rem; color: #fff; font-family: monospace; background: #111; padding: 15px; border: 1px solid #333; border-radius: 8px; margin: 20px 0;">Calculating...</div>
+
+            <button onclick="document.getElementById('system-alert').style.display='none'" style="background: transparent; border: 1px solid #555; color: #777; padding: 10px 30px; cursor: pointer; border-radius: 5px;">CLOSE</button>
+        </div>
+    `;
+
+    startCountdown();
 }
 
+function startCountdown() {
+    const timerDisplay = document.getElementById('quest-countdown');
+    if(!timerDisplay) return;
+
+    if (questTimerInterval) clearInterval(questTimerInterval);
+
+    questTimerInterval = setInterval(() => {
+        const now = new Date();
+        const tomorrow = new Date();
+        tomorrow.setHours(24, 0, 0, 0); 
+        const diff = tomorrow - now;
+
+        if (diff <= 0) {
+            clearInterval(questTimerInterval);
+            location.reload(); 
+            return;
+        }
+
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        timerDisplay.innerText = `${h.toString().padStart(2, '0')}h : ${m.toString().padStart(2, '0')}m : ${s.toString().padStart(2, '0')}s`;
+    }, 1000);
+}
+
+// --- UI HELPERS ---
 window.toggleTask = function(element) {
     const checkbox = element.querySelector('input');
-    if (checkbox.checked) element.classList.add('completed'); else element.classList.remove('completed');
-    if(document.querySelectorAll('.quest-item input:checked').length === 3) { 
-        document.getElementById('claim-btn').innerText = "CLAIM REWARD"; 
-        document.getElementById('claim-btn').classList.add('ready'); 
-    } else { 
-        document.getElementById('claim-btn').innerText = "INCOMPLETE"; 
-        document.getElementById('claim-btn').classList.remove('ready'); 
+    checkbox.checked = !checkbox.checked;
+    
+    if (checkbox.checked) element.classList.add('completed'); 
+    else element.classList.remove('completed');
+    
+    const totalChecked = document.querySelectorAll('.quest-item input:checked').length;
+    const btn = document.getElementById('claim-btn');
+
+    if(btn) {
+        if(totalChecked >= 3) { 
+            btn.innerText = "CLAIM REWARD"; 
+            btn.classList.add('ready'); 
+            if(window.audioSys && window.audioSys.play) window.audioSys.play('hover');
+        } else { 
+            btn.innerText = "INCOMPLETE"; 
+            btn.classList.remove('ready'); 
+        }
     }
 }
 
 window.completeDailyQuest = function() {
-    if (!document.getElementById('claim-btn').classList.contains('ready')) return;
+    const btn = document.getElementById('claim-btn');
+    if (!btn || !btn.classList.contains('ready')) return;
+    
     const rewardXP = 50; 
     localStorage.setItem('add_xp', parseInt(localStorage.getItem('add_xp') || "0") + rewardXP);
-    localStorage.setItem('last_quest_time', Date.now().toString());
-    document.getElementById('system-alert').style.display = 'none';
-    if(window.audioSys) audioSys.play('levelUp');
+    
+    // 🔥 SAVE DATE
+    const todayDate = new Date().toDateString();
+    localStorage.setItem('last_training_date', todayDate);
+    
+    if(window.audioSys && window.audioSys.play) window.audioSys.play('levelUp');
     updatePlayerStats();
+    
+    alert("💪 TRAINING COMPLETE! (+50 XP)\nSystem entering cooldown mode.");
+    showCooldownUI(); 
+    
+    // Trigger Cloud Sync
+    if(typeof syncXPToCloud === 'function') syncXPToCloud(parseInt(localStorage.getItem('add_xp')));
 }
 
-window.skipDailyQuest = function() { if(confirm("Skip training?")) document.getElementById('system-alert').style.display = 'none'; }
+window.skipDailyQuest = function() { 
+    if(confirm("Skip training? (No XP will be awarded)")) {
+        document.getElementById('system-alert').style.display = 'none'; 
+    }
+}
 
 // =============================================================
-// 🔥 6. UTILS
+// 🔥 6. ROADMAP & UTILS (Missing Handlers Fixed)
 // =============================================================
 
 window.handleLogout = function() { if(confirm("Disconnect?")) { localStorage.removeItem('user_info'); window.location.href = 'index.html'; } }
-window.resetProgress = function() { if(confirm("RESET ALL PROGRESS?")) { localStorage.setItem('add_xp', 0); location.reload(); } }
+window.resetProgress = function() { 
+    if(confirm("⚠️ WARNING: THIS CANNOT BE UNDONE.\nReset all Level & XP?")) { 
+        
+        // 1. Local Reset
+        localStorage.setItem('add_xp', 0); 
+        
+        // 2. Cloud Reset (Database ko bhi 0 bhejo)
+        if(typeof syncXPToCloud === 'function') {
+            syncXPToCloud(0); 
+        }
 
-// =============================================================
-// 🔥 7. ROADMAP SYSTEM (FIXED: BLACK PDF & FULLSCREEN)
-// =============================================================
+        location.reload(); 
+    } 
+}
+
+window.openQuestLog = function() {
+    const questSection = document.getElementById('quest-section');
+    if(questSection) questSection.scrollIntoView({ behavior: 'smooth' });
+    else alert("Quest Log System Active.");
+};
+
+window.openConfig = function() {
+    const configPanel = document.getElementById('config-overlay');
+    if(configPanel) {
+        configPanel.classList.remove('hidden');
+        configPanel.style.display = 'flex';
+    } else {
+        alert("⚙️ SYSTEM SETTINGS:\n\n- Audio: ON\n- Notifications: ENABLED\n- AI Agent: IGRIS (Active)");
+    }
+};
+
+window.closeConfig = function() {
+    const configPanel = document.getElementById('config-overlay');
+    if(configPanel) configPanel.style.display = 'none';
+}
+
+window.openGrimoire = function() {
+    const grimoirePanel = document.getElementById('grimoire-overlay');
+    if(grimoirePanel) {
+        grimoirePanel.classList.remove('hidden');
+        grimoirePanel.style.display = 'flex';
+        // Load data logic here if needed
+    } else {
+        alert("Grimoire is accessible inside Dungeon Mode.");
+    }
+}
 
 window.openPathfinder = function() {
     const overlay = document.getElementById('roadmap-overlay');
-    overlay.classList.remove('hidden');
-    overlay.style.display = 'flex';
-    renderRoleHistory();
-    injectHeaderControls(); // 🔥 Buttons hamesha add honge
+    if(overlay) {
+        overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
+        if(typeof renderRoleHistory === 'function') renderRoleHistory();
+        if(typeof injectHeaderControls === 'function') injectHeaderControls(); 
+    }
 }
 
 function injectHeaderControls() {
@@ -256,7 +442,6 @@ function injectHeaderControls() {
     controls.className = 'window-controls';
     controls.style.cssText = "display: flex; gap: 10px; align-items: center; margin-left: auto;";
 
-    // 🔥 FIX: display:flex (Always Visible)
     controls.innerHTML = `
         <button id="header-dl-btn" onclick="downloadRoadmap()" title="Download Intel" style="display:flex; background:var(--neon-gold); border:none; color:black; font-weight:bold; font-family:'Orbitron'; padding:5px 15px; cursor:pointer; gap:5px; align-items:center; border-radius:4px;">
             <i class="fas fa-file-download"></i> PDF
@@ -274,138 +459,46 @@ function injectHeaderControls() {
     header.appendChild(controls);
 }
 
-// 🔥 FIXED FULLSCREEN (Clean View - Only Roadmap)
 window.toggleFullscreen = function() {
     const overlayBox = document.querySelector('#roadmap-overlay .alert-box');
     const icon = document.querySelector('.control-btn i.fa-expand, .control-btn i.fa-compress');
     
-    // Toggle Class (CSS handles size and hiding search bar)
-    overlayBox.classList.toggle('modal-fullscreen');
+    if(overlayBox) overlayBox.classList.toggle('modal-fullscreen');
 
-    // Toggle Icon
-    if(overlayBox.classList.contains('modal-fullscreen')) {
+    if(overlayBox && overlayBox.classList.contains('modal-fullscreen')) {
         if(icon) { icon.classList.remove('fa-expand'); icon.classList.add('fa-compress'); }
-    } else {
-        if(icon) { icon.classList.remove('fa-compress'); icon.classList.add('fa-expand'); }
+    } else if(icon) {
+        icon.classList.remove('fa-compress'); icon.classList.add('fa-expand'); 
     }
 };
 
 window.closeOracle = function() {
     const overlay = document.getElementById('roadmap-overlay');
-    overlay.style.display = 'none';
-    const overlayBox = overlay.querySelector('.alert-box');
+    if(overlay) overlay.style.display = 'none';
+    const overlayBox = overlay ? overlay.querySelector('.alert-box') : null;
     if(overlayBox) overlayBox.classList.remove('modal-fullscreen');
 };
 
-// =============================================================
-// 🔥 PRO PDF ENGINE (NO WHITE PAGE, NO UI GLITCH)
-// =============================================================
-
-// Clean printable version builder
-function buildCleanPDFLayout() {
-    const source = document.getElementById('roadmap-steps');
-    if (!source) return null;
-
-    const clean = document.createElement('div');
-    clean.id = "temp-pdf-container";
-
-    clean.style.cssText = `
-        background:#000000;
-        color:#ffffff;
-        padding:40px;
-        width:800px;
-        font-family: Arial, sans-serif;
-        line-height:1.6;
-    `;
-
-    clean.innerHTML = `
-        <h1 style="color:#00eaff; text-align:center; margin-bottom:25px;">
-            HUNTER ROADMAP INTEL
-        </h1>
-        <hr style="border:1px solid #00eaff; margin-bottom:30px;">
-    `;
-
-    // Only roadmap cards clone
-    const cards = source.querySelectorAll('div[style*="border-left"]');
-
-    cards.forEach(card => {
-        const clone = card.cloneNode(true);
-
-        clone.style.background = "#111";
-        clone.style.marginBottom = "25px";
-        clone.style.padding = "20px";
-        clone.style.borderRadius = "8px";
-
-        clean.appendChild(clone);
-    });
-
-    return clean;
-}
-
-// =============================================================
-// 🔥 FIXED DOWNLOAD FUNCTION
-// =============================================================
-window.downloadRoadmap = function () {
-    const pdfLayout = buildCleanPDFLayout();
-    if (!pdfLayout) {
-        alert("⚠️ No Roadmap Found!");
-        return;
-    }
-
-    // Hidden attach
-    pdfLayout.style.position = "fixed";
-    pdfLayout.style.top = "-9999px";
-    document.body.appendChild(pdfLayout);
-
-    const btn = document.getElementById('header-dl-btn');
-    const originalText = btn ? btn.innerHTML : "";
-
-    if (btn) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> PREPARING...`;
-
-    const opt = {
-        margin: 0.5,
-        filename: 'Hunter_Roadmap_Intel.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: {
-            scale: 2,
-            backgroundColor: "#000000",
-        },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(pdfLayout).save().then(() => {
-        pdfLayout.remove();
-
-        if (btn) {
-            btn.innerHTML = `<i class="fas fa-check"></i> SAVED`;
-            setTimeout(() => btn.innerHTML = originalText, 2000);
-        }
-    }).catch(err => {
-        console.error("PDF Error:", err);
-        pdfLayout.remove();
-        if (btn) btn.innerHTML = originalText;
-        alert("PDF Generation Failed.");
-    });
-};
-
-
-// 🔥 GENERATE ROADMAP (Standard)
+// 🔥 GENERATE ROADMAP
 async function fetchRoadmap(savedRole = null) {
     const roleInput = document.getElementById('role-input');
     const role = savedRole || roleInput.value;
     if(!role) return alert("Please enter a role!");
     if(!savedRole) saveRoleHistory(role);
 
-    document.getElementById('roadmap-steps').innerHTML = '';
-    document.getElementById('roadmap-loading').classList.remove('hidden');
+    const stepsContainer = document.getElementById('roadmap-steps');
+    const loading = document.getElementById('roadmap-loading');
+    
+    if(stepsContainer) stepsContainer.innerHTML = '';
+    if(loading) loading.classList.remove('hidden');
     
     try {
-        const res = await fetch('/generate-roadmap', {
+        const res = await fetch('http://localhost:3001/generate-roadmap', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: role })
         });
         const data = await res.json();
         renderRoadmap(data.roadmap);
-        document.getElementById('roadmap-loading').classList.add('hidden');
+        if(loading) loading.classList.add('hidden');
 
     } catch (err) {
         // Fallback Mock Data
@@ -415,7 +508,7 @@ async function fetchRoadmap(savedRole = null) {
             { rank: "S-RANK", title: "Mastery", concepts: ["System Design", "Scalability"], boss_project: "Distributed System", boss_desc: "Handle 1M Users." }
         ];
         renderRoadmap(mockSteps);
-        document.getElementById('roadmap-loading').classList.add('hidden');
+        if(loading) loading.classList.add('hidden');
     }
 }
 window.fetchRoadmap = fetchRoadmap;
@@ -432,6 +525,7 @@ function saveRoleHistory(role) {
 
 function renderRoleHistory() {
     const container = document.getElementById('role-history-container');
+    if(!container) return;
     const history = JSON.parse(localStorage.getItem('role_history')) || [];
     container.innerHTML = history.map(role => `
         <div class="role-chip" onclick="setInputAndSearch('${role}')">
@@ -445,6 +539,7 @@ window.deleteRole = function(e, role) { e.stopPropagation(); let history = JSON.
 
 function renderRoadmap(steps) {
     const container = document.getElementById('roadmap-steps');
+    if(!container) return;
     container.innerHTML = '';
     steps.forEach(step => {
         let color = step.rank.includes('S-RANK') ? '#ff3333' : step.rank.includes('A-RANK') ? '#bd00ff' : '#00eaff';
@@ -516,3 +611,277 @@ window.downloadRoadmap = async function () {
     }
 };
 
+
+
+// =============================================================
+// 🔥 7. ACADEMIC SYSTEM CONNECTION (NEW)
+// =============================================================
+
+window.openAcademicSystem = function() {
+    
+
+    if (savedBlueprint) {
+        // ✅ Plan exists -> Enter Dashboard
+        console.log("System: Academic Blueprint found. Accessing Dashboard...");
+        
+        // Optional: Play Sound
+        if(window.audioSys && window.audioSys.play) window.audioSys.play('click');
+
+        // Transition Effect
+        document.body.style.transition = "opacity 0.5s";
+        document.body.style.opacity = "0";
+        
+        setTimeout(() => {
+            window.location.href = 'study-dashboard.html';
+        }, 500);
+
+    } else {
+        // ❌ No Plan -> Redirect to Architect
+        if(confirm("⚠ SYSTEM ALERT: No Academic Blueprint detected.\n\nInitialize 'The Architect' to create your semester strategy?")) {
+            window.location.href = 'study-os.html';
+        }
+    }
+};
+
+// ============================================
+// 🔥 CUSTOM SYSTEM CONFIRMATION (NO MORE BORING ALERTS)
+// ============================================
+
+let confirmResolver = null; // To store the Promise resolve function
+
+function showSystemConfirm(title, message) {
+    return new Promise((resolve) => {
+        // 1. Set Content
+        const modal = document.getElementById('custom-confirm-modal');
+        const titleEl = modal.querySelector('h2');
+        const msgEl = document.getElementById('confirm-msg');
+        
+        if (title) titleEl.innerText = title;
+        if (message) msgEl.innerText = message;
+
+        // 2. Show Modal with Animation
+        modal.classList.remove('hidden');
+        
+        // 3. Play Notification Sound (If you have audio sys)
+        if(window.audioSys) window.audioSys.play('hover'); // or 'alert'
+
+        // 4. Store resolve for button clicks
+        confirmResolver = resolve;
+    });
+}
+
+function closeCustomConfirm(result) {
+    const modal = document.getElementById('custom-confirm-modal');
+    modal.classList.add('hidden');
+    
+    // Resolve the promise based on button click (True/False)
+    if (confirmResolver) {
+        confirmResolver(result);
+        confirmResolver = null;
+    }
+}
+
+// ============================================
+// 🔄 UPDATED: ACADEMIC SYSTEM OPENER
+// ============================================
+
+// 🔥 Is function ko replace karein purane wale se
+window.openAcademicSystem = async function() {
+    const savedBlueprint = localStorage.getItem('hunter_blueprint');
+
+    if (savedBlueprint) {
+        console.log("System: Access Granted.");
+        document.body.style.transition = "opacity 0.5s";
+        document.body.style.opacity = "0";
+        setTimeout(() => window.location.href = 'study-dashboard.html', 500);
+    } else {
+        // 👇 YAHAN MAGIC HOGA (Wait for user click)
+        const userChoice = await showSystemConfirm(
+            "BLUEPRINT NOT FOUND", 
+            "The Architect requires a semester strategy to proceed."
+        );
+
+        if (userChoice === true) {
+            // User clicked INITIALIZE
+            window.location.href = 'study-os.html';
+        } else {
+            // User clicked DECLINE
+            console.log("System: Initialization Aborted.");
+        }
+    }
+};
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+function runTextDecoder(element) {
+  let iteration = 0;
+  const originalText = element.dataset.value; // HTML में data-value एट्रिब्यूट होना चाहिए
+  
+  clearInterval(element.interval);
+  
+  element.interval = setInterval(() => {
+    element.innerText = originalText
+      .split("")
+      .map((letter, index) => {
+        if(index < iteration) {
+          return originalText[index];
+        }
+        return letters[Math.floor(Math.random() * 26)];
+      })
+      .join("");
+    
+    if(iteration >= originalText.length){ 
+      clearInterval(element.interval);
+    }
+    
+    iteration += 1 / 3; // स्पीड कंट्रोल (जितना कम, उतना स्लो)
+  }, 30);
+}
+
+function initSpotlightEffect() {
+  const cards = document.querySelectorAll(".dungeon-card"); // या .spotlight-card
+
+  document.getElementById("recents-grid").onmousemove = e => {
+    for(const card of cards) {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      card.style.setProperty("--mouse-x", `${x}px`);
+      card.style.setProperty("--mouse-y", `${y}px`);
+    }
+  };
+}
+
+// पेज लोड होने पर कॉल करें
+// window.onload में: initSpotlightEffect();
+
+
+
+// --- GUILD FAMILIAR LOGIC (COMPLETE SYSTEM) ---
+
+let petClickCount = 0;
+let roamInterval;
+
+// Positions CSS classes
+const positions = [
+    'pos-bottom-right',
+    'pos-bottom-left', 
+    'pos-side-right',
+    'pos-side-left'
+];
+
+// 1. START PET SYSTEM
+window.showGuildPet = function() {
+    const pet = document.getElementById('guild-familiar-container');
+    if(pet) {
+        console.log("👻 Summoning Familiar...");
+        pet.classList.remove('hidden'); // Ensure it's not hidden via CSS
+        
+        petClickCount = 0; // Reset clicks
+        movePetRandomly(); // Move immediately
+        
+        // Clear existing interval if any
+        if(roamInterval) clearInterval(roamInterval);
+        
+        // Start roaming every 15 seconds
+        roamInterval = setInterval(movePetRandomly, 15000); 
+    }
+}
+
+// 2. MOVEMENT LOGIC
+function movePetRandomly() {
+    const pet = document.getElementById('guild-familiar-container');
+    const card = document.getElementById('familiar-status-card');
+    
+    if(!pet) return;
+
+    // Move hone se pehle card ko chupao (taaki hawa me na latke)
+    if(card) card.classList.add('hidden');
+
+    // Step A: Hide (Fade Out)
+    pet.classList.remove('visible'); 
+
+    // Step B: Wait 1s, Move & Show
+    setTimeout(() => {
+        // Remove old position classes
+        pet.classList.remove(...positions);
+
+        // Pick new random position
+        const randomPos = positions[Math.floor(Math.random() * positions.length)];
+        
+        // Add new position & show
+        pet.classList.add(randomPos);
+        pet.classList.add('visible');
+        
+        console.log(`Pet moved to: ${randomPos}`);
+    }, 1000);
+}
+
+// 3. CLICK INTERACTION (Ye Missing Tha!)
+window.interactWithPet = function() {
+    const card = document.getElementById('familiar-status-card');
+    const pet = document.getElementById('guild-familiar-container');
+    
+    petClickCount++;
+    console.log(`Pet Clicked: ${petClickCount}/3`);
+
+    // --- CASE A: 3 Baar Click kiya -> GAYAB ---
+    if (petClickCount >= 3) {
+        if(card) card.classList.add('hidden'); // Card chupao
+        if(pet) {
+            pet.classList.remove('visible'); // Pet fade out
+            setTimeout(() => pet.classList.add('hidden'), 500); // Fully hide
+        }
+        clearInterval(roamInterval); // Ghumana band
+        alert("Pet is tired and went to sleep. (Re-open Guild to summon)");
+        return;
+    }
+
+    // --- CASE B: Normal Click -> Show/Hide Details ---
+    if (card) {
+        if (card.classList.contains('hidden')) {
+            updateFriendStatus(); // Naya data load karo
+            card.classList.remove('hidden'); // Show Card
+        } else {
+            card.classList.add('hidden'); // Hide Card
+        }
+    }
+}
+
+// 4. DATA UPDATE (Fake Friend Info)
+function updateFriendStatus() {
+    const friends = [
+        { name: "Rhea", action: "Watching: Digital Electronics", mood: "🤔 Thinking" },
+        { name: "Aman", action: "Solving: K-Map Quiz", mood: "🔥 Focused" },
+        { name: "Kabir", action: "Idle in Lobby", mood: "💤 Sleepy" },
+        { name: "Sanya", action: "Quest: 4-Bit Adder", mood: "⚔️ Battling" }
+    ];
+    
+    // Pick Random Friend
+    const data = friends[Math.floor(Math.random() * friends.length)];
+
+    // Update HTML
+    const nameEl = document.getElementById('friend-name');
+    const actEl = document.getElementById('friend-activity');
+    const moodEl = document.getElementById('friend-mood');
+
+    if(nameEl) nameEl.innerText = data.name;
+    if(actEl) actEl.innerText = data.action;
+    if(moodEl) moodEl.innerText = data.mood;
+}
+
+// 5. MANUAL HIDE
+window.hidePet = function() {
+    const pet = document.getElementById('guild-familiar-container');
+    if(pet) {
+        pet.classList.remove('visible');
+        clearInterval(roamInterval);
+    }
+}
+
+// 🔥 AUTO START (Testing ke liye)
+setTimeout(() => {
+    if(typeof window.showGuildPet === "function") {
+        window.showGuildPet();
+    }
+}, 1000);

@@ -1,0 +1,79 @@
+{
+  "CS": [
+  {"name": "Flexbox Froggy", "url": "https://flexboxfroggy.com/", "tags": ["css", "layout", "web"]},
+  {"name": "Grid Garden", "url": "https://cssgridgarden.com/", "tags": ["css", "grid", "web"]},
+  {"name": "SQL Island", "url": "https://sql-island.jp/", "tags": ["database", "sql", "queries"]},
+  {"name": "Elevator Saga", "url": "https://play.elevatorsaga.com/", "tags": ["javascript", "algorithms", "logic"]},
+  {"name": "CodeCombat", "url": "https://codecombat.com/", "tags": ["python", "javascript", "programming"]},
+  {"name": "CodinGame", "url": "https://www.codingame.com/", "tags": ["algorithms", "coding", "challenges"]},
+  {"name": "Lightbot", "url": "https://lightbot.com/flash.html", "tags": ["logic", "loops", "thinking"]},
+  {"name": "VisuAlgo", "url": "https://visualgo.net/", "tags": ["data-structures", "algorithms", "visual"]},
+  {"name": "Screeps", "url": "https://screeps.com/", "tags": ["javascript", "ai", "automation"]},
+  {"name": "Colobot", "url": "https://colobot.info/", "tags": ["robotics", "programming", "logic"]},
+
+  {"name": "Blockly Games", "url": "https://blockly.games/", "tags": ["blockly", "visual programming", "beginners"]},
+  {"name": "CheckiO", "url": "https://checkio.org/", "tags": ["python", "javascript", "puzzles"]},
+  {"name": "CSS Diner", "url": "https://flukeout.github.io/css-diner/", "tags": ["css", "selectors", "web"]},
+  {"name": "Algorithm Visualizer", "url": "https://algorithm-visualizer.org/", "tags": ["algorithms", "visualization", "learning"]},
+  {"name": "RoboZZle", "url": "https://www.robozzle.com/", "tags": ["logic", "recursion", "puzzle"]},
+  {"name": "CodeMonkey (Play)", "url": "https://www.playcodemonkey.com/", "tags": ["python", "game-based", "beginners"]}
+],
+
+  "ECE": [
+    {"name": "HamSphere", "url": "https://www.hamsphere.com/", "tags": ["analog-communication", "radio", "modulation"]},
+    {"name": "Salim Wireless Modulation Simulator", "url": "https://www.salimwireless.com/p/digital-signal-processing-simulator.html", "tags": ["digital-modulation", "ber", "signals"]},
+    {"name": "LTspice", "url": "https://www.analog.com/en/design-center/design-tools-and-calculators/ltspice-simulator.html", "tags": ["analog-circuits", "filters", "op-amps"]},
+    {"name": "Qucs Simulator", "url": "http://qucs.sourceforge.net", "tags": ["circuits", "filters", "analysis"]},
+    {"name": "CircuitVerse", "url": "https://circuitverse.org/", "tags": ["digital-logic", "circuits", "signals"]},
+    {"name": "Virtual Labs ECE", "url": "https://www.vlab.co.in/broad-area-electronics-and-communications", "tags": ["lab", "electronics", "experiments"]}
+  ],
+
+
+  "DigitalElectronics": [
+    {"name": "CircuitGates","url": "https://plays.org/circuitgates/","tags": ["digital", "logic-gates", "boolean", "puzzle"]},
+    {"name": "NandGame","url": "https://nandgame.com/","tags": ["digital", "nand", "logic-design", "circuits"]},
+    {"name": "Logic.ly Demo","url": "https://logic.ly/demo/","tags": ["digital", "logic-gates", "simulator", "truth-table"]},
+    {"name": "Academo Logic Gate Simulator","url": "https://academo.org/demos/logic-gate-simulator/","tags": ["digital", "logic-gates", "truth-table", "simulator"]},
+    {"name": "Circuit Logic (Android)","url": "https://play.google.com/store/apps/details?id=com.beewist.circuitlogic","tags": ["digital", "logic-gates", "puzzle", "mobile"]},
+    {"name": "Digital Logic Sim 2 (Android)","url": "https://play.google.com/store/apps/details?id=com.SebastianAndLimeinc.DigitalLogicSim","tags": ["digital", "logic-design", "processor-logic", "mobile"]},
+    {"name": "Simulator.io","url": "https://simulator.io/","tags": ["digital", "logic-circuits", "builder", "simulator"]},
+    {"name": "Falstad Circuit Simulator","url": "https://www.falstad.com/circuit/","tags": ["digital", "logic-gates", "circuits", "simulator"]}
+  ],
+
+  "Electrical": [
+    {"name": "EveryCircuit", "url": "https://www.everycircuit.com/", "tags": ["dc-circuits", "ac-circuits", "simulation"]},
+    {"name": "DCACLab", "url": "https://dcaclab.com/", "tags": ["electronics", "oscilloscope", "simulation"]},
+    {"name": "CircuitLab", "url": "https://www.circuitlab.com/", "tags": ["schematics", "analog", "digital"]},
+    {"name": "EasyEDA", "url": "https://easyeda.com/", "tags": ["pcb", "circuit-design", "simulation"]},
+    {"name": "DesignSpark Simulator", "url": "https://www.rs-online.com/designspark/designspark-circuit-simulator", "tags": ["mixed-circuits", "simulation"]},
+    {"name": "Industrial Electrical Troubleshooter", "url": "https://bin95.com/industrial/electrical-troubleshooting.htm", "tags": ["troubleshooting", "motors", "control"]}
+  ],
+
+  "Mechanical": [
+    {"name": "Energy2D", "url": "https://energy.concord.org/energy2d/", "tags": ["heat-transfer", "thermodynamics", "simulation"]},
+    {"name": "Algodoo", "url": "http://www.algodoo.com/", "tags": ["physics", "fluid-mechanics", "dynamics"]},
+    {"name": "Poly Bridge", "url": "https://www.polybridge.com/", "tags": ["structure", "forces", "bridge"]},
+    {"name": "Bridge Constructor", "url": "https://store.steampowered.com/app/250460/Bridge_Constructor/", "tags": ["structure", "mechanics", "design"]},
+    {"name": "Kerbal Space Program", "url": "https://www.kerbalspaceprogram.com/", "tags": ["mechanics", "rockets", "physics"]},
+    {"name": "Factorio", "url": "https://www.factorio.com/", "tags": ["manufacturing", "process", "automation"]},
+    {"name": "Teardown", "url": "https://store.steampowered.com/app/1167630/Teardown/", "tags": ["physics", "structures", "mechanics"]},
+    {"name": "Virtual Labs Mechanical", "url": "https://www.vlab.co.in/broad-area-mechanical-engineering", "tags": ["lab", "thermo", "fluids"]}
+  ],
+
+  "Civil": [
+    {"name": "Bridge Designer", "url": "https://www.engineering.com/games/bridge-designer/", "tags": ["structural", "loads", "analysis"]},
+    {"name": "INFRA", "url": "https://store.steampowered.com/app/251110/INFRA/", "tags": ["infrastructure", "inspection", "civil"]},
+    {"name": "Civils.ai Tools", "url": "https://civils.ai/free-civil-engineering-design-software", "tags": ["truss", "beam", "analysis"]},
+    {"name": "Cities Skylines", "url": "https://www.paradoxinteractive.com/games/cities-skylines/about", "tags": ["urban-planning", "traffic", "city"]},
+    {"name": "Mini Motorways", "url": "https://dinopoloclub.com/games/mini-motorways/", "tags": ["traffic", "transportation", "planning"]},
+    {"name": "Civil Engineering Learning App", "url": "https://play.google.com/store/apps/details?id=co.arya.beadu", "tags": ["surveying", "hydraulics", "structures"]}
+  ],
+
+  "Chemical": [
+    {"name": "SpaceChem", "url": "https://store.steampowered.com/app/92800/SpaceChem/", "tags": ["chemical-process", "automation", "logic"]},
+    {"name": "ChemCollective Virtual Lab", "url": "https://chemcollective.org/vlabs", "tags": ["chemistry", "lab", "reactions"]},
+    {"name": "PhET Chemistry Sims", "url": "https://phet.colorado.edu/", "tags": ["chemistry", "simulation", "education"]},
+    {"name": "Polycraft World", "url": "https://polycraft.utdallas.edu/", "tags": ["polymers", "petrochemical", "minecraft"]},
+    {"name": "The Chemist Game", "url": "https://store.steampowered.com/app/1230380/The_Chemist/", "tags": ["chemistry", "experiments", "learning"]}
+  ]
+}

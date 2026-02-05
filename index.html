@@ -62,7 +62,9 @@
             </div>
 
             <div class="hero-buttons" style="margin-top: 20px;">
-                <button class="watch-trailer" onclick="location.href='login.html'">🚀 START FIRST QUEST</button>
+                <button id="main-start-btn" onclick="handleStartGame()" class="cta-btn">
+    🚀 START FIRST QUEST
+</button>
                 
             </div>
         </div>
@@ -194,5 +196,53 @@
     </footer>
 
     <script src="js/landing.js"></script>
+    <script type="module">
+    import { auth } from './js/firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    let currentUser = null;
+    const btn = document.getElementById('main-start-btn');
+
+    // 1. Page Load hote hi check karo: Banda login hai ya nahi?
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // ✅ USER LOGGED IN HAI
+            console.log("Welcome back, Hunter:", user.email);
+            currentUser = user;
+            
+            // Button ka Text badal do (Optional Swag)
+            if(btn) {
+                btn.innerHTML = `⚔️ RESUME JOURNEY`;
+                btn.style.background = "var(--neon-purple)"; // Color change
+            }
+        } else {
+            // ❌ KOI LOGIN NAHI HAI
+            console.log("No active session.");
+            currentUser = null;
+            if(btn) btn.innerHTML = `🚀 START FIRST QUEST`;
+        }
+    });
+
+    // 2. Button Click Handler (Window se attach kiya taaki HTML access kar sake)
+    window.handleStartGame = function() {
+        if (currentUser) {
+            // Scene A: Account hai -> Direct Game me bhejo
+            console.log("Redirecting to Dungeon...");
+            window.location.href = "game-map.html";
+        } else {
+            // Scene B: Account nahi hai -> Login Modal kholo
+            console.log("Opening Login Gate...");
+            // Yahan wahi function call karo jo login modal kholta hai
+            // Agar tumhara function 'openLoginModal()' hai, to wahi rahne do
+            if(typeof openLoginModal === 'function') {
+                openLoginModal(); 
+            } else {
+                // Fallback agar modal function nahi mila
+                document.getElementById('login-modal').classList.remove('hidden');
+                document.getElementById('login-modal').style.display = 'flex';
+            }
+        }
+    };
+</script>
 </body>
 </html>

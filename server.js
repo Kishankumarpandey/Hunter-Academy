@@ -2,8 +2,17 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const Groq = require('groq-sdk'); 
+const fs = require('fs'); 
+const Groq = require('groq-sdk');
 const { YoutubeTranscript } = require('youtube-transcript');
+
+// 🔥 NEW: Import Orchestrator (Agar file banayi hai to ye load hoga, nahi to error ignore karega)
+let orchestrator = null;
+try {
+    orchestrator = require('./src/core/orchestrator');
+} catch (e) {
+    console.log("⚠️ OWL Orchestrator files not found. Creating server without it.");
+}
 
 // 🔥 SAFETY SHIELD: Crash Handler
 process.on('uncaughtException', (err) => {
@@ -62,6 +71,45 @@ async function extractVideoData(videoUrl) {
 }
 
 // =================================================================
+// 🚀 NEW: OWL SYSTEM ROUTE (ADDITION)
+// =================================================================
+app.post('/api/process-video', async (req, res) => {
+    if (!orchestrator) return res.status(500).json({ error: "Orchestrator not configured" });
+    const { videoUrl } = req.body;
+    try {
+        const result = await orchestrator.processVideo(videoUrl);
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+// =================================================================
+// ⚖️ JUDGE SYSTEM (XP & VALIDATION)
+// =================================================================
+app.post('/api/validate-action', async (req, res) => {
+    try {
+        if (!orchestrator) return res.status(500).json({ error: "System Offline" });
+        const result = await orchestrator.validatePlayerAction(req.body);
+        res.json(result);
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: "Judge Error" });
+    }
+});
+
+// =================================================================
+// 🔄 NEXT LEVEL SYSTEM (VIDEO ROTATION)
+// =================================================================
+app.post('/api/next-mission', async (req, res) => {
+    try {
+        if (!orchestrator) return res.status(500).json({ error: "System Offline" });
+        const result = await orchestrator.getNextLevel();
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ error: "Rotation Error" });
+    }
+});
+// =================================================================
 // 1. GENERATE QUIZ (DUNGEON GATE) - STRICT ENGINEERING MODE 🧠
 // =================================================================
 app.post('/generate-dungeon', async (req, res) => {
@@ -92,7 +140,10 @@ app.post('/generate-dungeon', async (req, res) => {
                     ❌ DO NOT use stars (****) or bold text for images.
                     ✅ CORRECT: "The voltage rises. 
 
+
+
 [Image of sinusoidal waveform]
+
 "
                     
                     **CONTEXT RULES**:
@@ -112,7 +163,10 @@ app.post('/generate-dungeon', async (req, res) => {
                     1. **Summary**: 5-7 bullet points summarizing the technical concepts. 
                         - Use 
 
+
+
 [Image of X]
+
  tag for diagrams.
                     2. **Questions**: 5 Multiple Choice Questions testing technical understanding.
 
@@ -120,7 +174,7 @@ app.post('/generate-dungeon', async (req, res) => {
                     {
                         "summary": ["Point 1...", "Point 2 
 
-[Image of X]
+
 ..."],
                         "questions": [
                             { "id": 1, "question": "Technical Question?", "options": ["A", "B", "C", "D"], "correctIndex": 0 }
@@ -151,70 +205,89 @@ app.post('/generate-notes', async (req, res) => {
         const { videoUrl, topic } = req.body;
         let contentToAnalyze = "";
 
+        // 1. Get Content
         if (videoUrl) {
-            contentToAnalyze = await extractVideoData(videoUrl);
-        } else {
-            contentToAnalyze = topic || "General Engineering Concept";
+            console.log(`📡 Extracting Transcript for Notes: ${videoUrl}`);
+            const transcript = await extractVideoData(videoUrl);
+            if (transcript) {
+                contentToAnalyze = transcript.substring(0, 25000); 
+            }
         }
 
-        console.log(">> Generating Strictly Engineering Notes...");
+        // Fallback
+        if ((!contentToAnalyze || contentToAnalyze.length < 50) && topic) {
+            contentToAnalyze = topic;
+        } else if (!contentToAnalyze) {
+            return res.status(400).json({ error: "Could not fetch transcript. Please use manual mode." });
+        }
+
+        console.log(">> Generating NotebookLM Style Notes...");
 
         const completion = await groq.chat.completions.create({
+            model: 'llama-3.3-70b-versatile',
+            temperature: 0.3,
             messages: [
                 { 
-                    role: "system", 
-                    content: `
-                    You are a strict **University Engineering Professor**. 
+                    role: 'system', 
+                    content: `You are an intelligent AI Study Guide Generator modeled after Google's NotebookLM. 
                     
-                    **CRITICAL INSTRUCTIONS**:
-                    1. **CONTEXT LOCK**: Always assume the context is **ACADEMIC & ENGINEERING**. 
-                    2. **OUTPUT**: Strictly valid JSON.
-                    ` 
+Your goal is to convert any technical content into a **Deep Dive Academic Guide** that sounds like a knowledgeable professor or podcast host is walking the student through the topic. Make it engaging, intuitive, and educational.
+
+📚 Style Rules:
+- Use simple, clear language but explain deeply.
+- Use analogies to make difficult topics easier.
+- Write as if it will be converted to audio.
+- Insert helpful visual cues using tags like: [Image of XYZ Circuit], [Image of Formula Plot].
+
+🧠 Output Rules:
+- Output STRICTLY valid JSON. No markdown. No extra commentary.
+- No \`\`\` tags or "Here is your output" text.
+
+🧾 Structure:
+{
+  "title": "Catchy but Academic Title",
+  "summary": "Begin with: 'In this session, we explore...'",
+  "sections": [
+    {
+      "heading": "🔥 Core Concept: Name",
+      "content": "Explain what it is, how it works, and why it matters. Use bullet-style insights and analogies if needed. Add visual tag where possible."
+    },
+    {
+      "heading": "🛠️ Real World Application",
+      "content": "Explain how this topic is used in real projects or products. Walk through one small example if possible."
+    }
+  ],
+  "keyTakeaways": [
+    "📌 Key insight 1",
+    "📌 Key insight 2",
+    "📌 Key insight 3"
+  ]
+}
+`
                 },
-                {
-                    role: "user",
-                    content: `
-                    Create detailed study notes for this engineering topic: 
-                    ---
-                    ${contentToAnalyze}
-                    ---
-                    
-                    **STRUCTURE**:
-                    1. **Title**: Academic Title.
-                    2. **Summary**: Technical overview (TL;DR).
-                    3. **Sections**: 3-4 deep technical sections using bullet points.
-                        - Use  tags for circuit diagrams, waveforms, block diagrams.
-                    4. **Key Takeaways**: Core engineering principles.
-
-                    STRICT JSON FORMAT:
-                    {
-                        "title": "Topic Name",
-                        "summary": "Technical summary...",
-                        "sections": [
-                            { 
-                                "heading": "1. Concept Name", 
-                                "content": "• Detail 1...\n• Detail 2... 
-
-[Image of circuit diagram]
-" 
-                            }
-                        ],
-                        "keyTakeaways": ["Rule 1", "Formula 1"]
-                    }
-                    `
+                { 
+                    role: 'user', 
+                    content: `Analyze the following content and generate a NotebookLM-style guide:
+---
+${contentToAnalyze}
+---`
                 }
             ],
-            model: "llama-3.3-70b-versatile",
-            temperature: 0.2,
             response_format: { type: "json_object" }
         });
 
-        const data = JSON.parse(completion.choices[0].message.content);
-        res.json(data);
+        const aiResponse = completion.choices[0]?.message?.content;
+        if (!aiResponse) throw new Error("AI returned empty");
+
+        // Safe Parse
+        const cleanJson = aiResponse.replace(/```json|```/g, '').trim();
+        const notes = JSON.parse(cleanJson);
+        
+        return res.json(notes);
 
     } catch (error) {
-        console.error("Notes Error:", error);
-        res.status(500).json({ error: "Engineering Database Locked." });
+        console.error('Error in /generate-notes:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -450,6 +523,51 @@ app.post('/generate-game-data', async (req, res) => {
     }
 });
 
+app.post('/match-game', async (req, res) => {
+    try {
+        const { videoTitle } = req.body;
+        const title = videoTitle ? videoTitle.toLowerCase() : "";
+        
+        console.log(`🔎 Master Agent Scanning for: "${title}"`);
+
+        // Original Path kept as per your request
+        const libraryPath = path.join(__dirname, 'data', 'game-library.json');
+        console.log("🔍 SERVER LOOKING AT PATH:", libraryPath);
+        if (!fs.existsSync(libraryPath)) {
+            // ❌ अगर फाइल नहीं है, तो कुछ मत भेजो (null)
+            return res.json(null);
+        }
+
+        const gameLib = JSON.parse(fs.readFileSync(libraryPath, 'utf8'));
+
+        console.log("📂 Loaded Categories:", Object.keys(gameLib));
+        console.log("📂 CS Games Count:", gameLib["CS"] ? gameLib["CS"].length : 0);
+        
+        // 🔥 CHANGE: पहले Default "game-lab.html" था, अब इसे null कर दिया
+        let matchedGame = null; 
+
+        Object.keys(gameLib).forEach(category => {
+            gameLib[category].forEach(game => {
+                if (game.tags.some(tag => title.includes(tag.toLowerCase()))) {
+                    matchedGame = game;
+                }
+            });
+        });
+
+        if (matchedGame) {
+            console.log(`✅ MATCH FOUND: ${matchedGame.name}`);
+            res.json(matchedGame);
+        } else {
+            console.log("⚠️ NO MATCH FOUND. Staying on page.");
+            res.json(null); // कोई गेम नहीं मिला तो null भेजो
+        }
+
+    } catch (error) {
+        console.error("❌ Match-Game Error:", error);
+        res.status(500).json(null);
+    }
+});
+
 // =================================================================
 // 🚀 START SERVER (ROBUST MODE)
 // =================================================================
@@ -468,4 +586,142 @@ server.on('error', (e) => {
         console.error("⚠️ SERVER CRASHED:", e);
     }
     process.exit(1);
+});
+// =================================================================
+// 🏛️ MODULE A: THE ARCHITECT (BLUEPRINT GENERATOR)
+// =================================================================
+app.post('/generate-blueprint', async (req, res) => {
+    try {
+        const { syllabus, careerGoal, hoursPerDay, durationWeeks } = req.body;
+        
+        console.log(`🏛️ ARCHITECT: Designing ${durationWeeks}-week plan for ${careerGoal}...`);
+
+        const completion = await groq.chat.completions.create({
+            messages: [
+                { 
+                    role: "system", 
+                    content: `You are the **Grandmaster Architect** of an Elite Hunter Academy.
+                    
+                    **OBJECTIVE**: 
+                    Convert raw college syllabus into a strategic ${durationWeeks}-week "Hunter Growth Blueprint" optimized for the goal: "${careerGoal}".
+
+                    **ANALYSIS RULES**:
+                    1. **Filter Noise**: Ignore generic intro text in syllabus. Focus on topics.
+                    2. **Prioritize**: Tag topics as "CORE" (Essential for ${careerGoal}) or "SUPPORT" (Exam only).
+                    3. **Connect**: Explain WHY a topic aids the career goal.
+                    4. **Project-Based**: Every 4 weeks, suggest a Mini-Boss Project combining learned topics.
+
+                    **STRICT JSON OUTPUT FORMAT**:
+                    {
+                        "blueprint_id": "unique_id",
+                        "strategy_summary": "A 2-line fierce motivational summary of this roadmap.",
+                        "exam_mode_strategy": "How to handle university exams while focusing on career.",
+                        "roadmap": [
+                            {
+                                "week": 1,
+                                "theme": "Week Title (e.g. The Awakening of Logic)",
+                                "focus_area": "Subject Name / Core Concept",
+                                "topics": [
+                                    {
+                                        "name": "Topic Name",
+                                        "importance": "HIGH/MED/LOW",
+                                        "tag": "CAREER-CORE", 
+                                        "reason": "Why this matters for ${careerGoal} (1 sentence)."
+                                    }
+                                ],
+                                "mini_project_idea": "Simple weekly task (e.g. Build a logic gate simulator)."
+                            }
+                            // ... Generate for all ${durationWeeks} weeks
+                        ]
+                    }
+                    ` 
+                },
+                {
+                    role: "user",
+                    content: `
+                    **HUNTER DATA**:
+                    - Career Goal: ${careerGoal}
+                    - Study Capacity: ${hoursPerDay} hours/day
+                    - Semester Duration: ${durationWeeks} weeks
+                    
+                    **RAW SYLLABUS TEXT**:
+                    ${syllabus.substring(0, 20000)} 
+                    `
+                }
+            ],
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.2,
+            response_format: { type: "json_object" }
+        });
+
+        const data = JSON.parse(completion.choices[0].message.content);
+        res.json(data);
+
+    } catch (error) {
+        console.error("Architect Error:", error);
+        res.status(500).json({ error: "Blueprint creation failed. The System is unstable." });
+    }
+});
+
+
+// =================================================================
+// 📅 MODULE B: THE NAVIGATOR (DAILY PLANNER)
+// =================================================================
+app.post('/generate-daily-plan', async (req, res) => {
+    try {
+        const { currentWeekData, completedTopics, hoursPerDay, mood } = req.body;
+        
+        console.log(`📅 NAVIGATOR: Generating Daily Mission... (Mood: ${mood})`);
+
+        const completion = await groq.chat.completions.create({
+            messages: [
+                { 
+                    role: "system", 
+                    content: `You are the Daily Tactical AI.
+                    
+                    **GOAL**: Create a specific, executable study plan for TODAY based on the Weekly Blueprint.
+                    
+                    **LOGIC**:
+                    1. Look at Week's Topics. Remove topics already in 'completedTopics'.
+                    2. Select enough topics to fill ${hoursPerDay} hours.
+                    3. If Mood is 'Low' (1-2), suggest lighter topics or videos. If 'High' (4-5), suggest Core concepts.
+                    
+                    **OUTPUT JSON**:
+                    {
+                        "daily_quote": "A short Hunter-style motivation line.",
+                        "focus_mode": "Deep Work / Quick Review / Practical",
+                        "tasks": [
+                            {
+                                "id": "t1",
+                                "title": "Topic Name",
+                                "type": "Theory/Video/Practice",
+                                "duration_min": 45,
+                                "reason": "Why this fits today's goal."
+                            }
+                        ],
+                        "wellness_tip": "Specific advice based on mood."
+                    }` 
+                },
+                {
+                    role: "user",
+                    content: `
+                    Week Data: ${JSON.stringify(currentWeekData)}
+                    Completed: ${JSON.stringify(completedTopics)}
+                    Daily Hours: ${hoursPerDay}
+                    Student Mood: ${mood}/5
+                    `
+                }
+            ],
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.4,
+            response_format: { type: "json_object" }
+        });
+
+        const data = JSON.parse(completion.choices[0].message.content);
+        res.json(data);
+
+    } catch (error) {
+        console.error("Navigator Error:", error);
+        res.status(500).json({ error: "Daily Plan generation failed." });
+    }
 });

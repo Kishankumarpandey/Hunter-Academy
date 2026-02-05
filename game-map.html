@@ -5,10 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hunter's Guild | System Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&family=Poppins:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/game-map.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
+<div id="guild-familiar-container" class="familiar-wrapper hidden">
+    
+    <div id="familiar-status-card" class="familiar-card hidden">
+        <div class="card-header">
+            <span class="online-dot"></span> 
+            <span id="friend-name">Rhea</span> is online
+        </div>
+        <div class="card-body">
+            <div class="activity-row">
+                <i class="fas fa-eye" style="color:var(--neon-blue)"></i>
+                <span id="friend-activity">Watching: Digital Electronics</span>
+            </div>
+            <div class="mood-badge" id="friend-mood">
+                🤔 Thinking
+            </div>
+        </div>
+        <div class="card-footer">
+            <button class="shadow-peek-btn" onclick="shadowPeek()">
+                <i class="fas fa-ghost"></i> SHADOW PEEK
+            </button>
+        </div>
+    </div>
+
+    <div class="pet-image-box" onclick="interactWithPet()">
+        <img src="photos/peeking.png" alt="Guild Pet" class="pet-img">
+    </div>
+</div>
+    <div id="custom-cursor"></div>
 
     <div class="stars"></div>
 
@@ -21,25 +50,15 @@
             </div>
 
             <div class="player-info">
-               <div class="name-container" style="position: relative; width: 100%; text-align: center;">
-    
-    <h2 id="player-name" onclick="enableEditMode()" 
-        style="cursor: pointer; border: 1px dashed transparent; transition: 0.3s; margin: 0; padding: 5px;" 
-        onmouseover="this.style.border='1px dashed var(--neon-blue)'; this.style.color='var(--neon-blue)';" 
-        onmouseout="this.style.border='1px dashed transparent'; this.style.color='white';">
-        JIN-WOO
-    </h2>
-
-    <input type="text" id="edit-name-input" 
-           style="display: none; width: 90%; background: #000; color: #00eaff; border: 1px solid #00eaff; 
-                  padding: 5px; font-family: 'Orbitron'; text-align: center; font-size: 1.2rem; outline: none; margin: 0 auto;"
-           placeholder="ENTER NAME..." 
-           onblur="saveNewName()" 
-           onkeydown="checkEnterKey(event)">
-
-</div>
+                <div class="name-container" style="position: relative; width: 100%; text-align: center;">
+                    <h2 id="player-name" onclick="enableEditMode()">JIN-WOO</h2>
+                    <input type="text" id="edit-name-input" 
+                           style="display: none; width: 90%; background: #000; color: #00eaff; border: 1px solid #00eaff; padding: 5px; font-family: 'Orbitron'; text-align: center; font-size: 1.2rem; outline: none; margin: 0 auto;"
+                           placeholder="ENTER NAME..." 
+                           onblur="saveNewName()" 
+                           onkeydown="checkEnterKey(event)">
+                </div>
                 <p>SHADOW MONARCH</p>
-                
 
                 <div class="stat-row">
                     <span><i class="fas fa-layer-group"></i> LEVEL</span>
@@ -59,18 +78,18 @@
                 </div>
             </div>
 
-            <div class="xp-bar-container" style="margin-top: 20px; width: 100%;">
+            <div class="xp-bar-container">
                 <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:5px;">
-                    <span id="xp-text-label">XP PROGRESS</span>
-                    <span id="xp-text">0 / 100 XP</span>
+                    <span id="xp-text-label" style="color:#aaa;">XP PROGRESS</span>
+                    <span id="xp-text" style="color:white; font-weight:bold;">0 / 100 XP</span>
                 </div>
-                <div style="width:100%; height:8px; background:#333; border-radius:4px; overflow:hidden;">
-                    <div id="xp-bar" style="width:0%; height:100%; background:linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); box-shadow: 0 0 10px var(--neon-blue); transition: width 0.5s ease;"></div>
+                <div class="xp-track" style="width:100%; height:12px; background:#111; border:1px solid #333; border-radius:6px; overflow:hidden; position:relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);">
+                    <div id="xp-bar" style="width:0%; height:100%; background:linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); box-shadow: 0 0 15px var(--neon-blue); transition: width 0.8s ease; position:relative;"></div>
                 </div>
             </div>
             
             <div style="margin-top:auto; text-align:center;">
-                 <button onclick="resetProgress()" class="reset-link" style="opacity:0.5; font-size:0.7rem;">[ SYSTEM RESET ]</button>
+                 <button onclick="resetProgress()" class="reset-link">[ SYSTEM RESET ]</button>
             </div>
         </aside>
 
@@ -111,34 +130,23 @@
 
     <div class="corner-hud">
         <button onclick="openPathfinder()" class="cyber-btn purple-tech">
-            <div class="btn-content">
-                <i class="fas fa-map-signs"></i>
-                <span class="label">ROADMAP</span>
-                <span class="tech-tag">01</span>
-            </div>
+            <div class="btn-content"><i class="fas fa-map-signs"></i><span class="label">ROADMAP</span><span class="tech-tag">01</span></div>
         </button>
-        
         <button onclick="openGrimoire()" class="cyber-btn gold-tech">
-            <div class="btn-content">
-                <i class="fas fa-book"></i>
-                <span class="label">GRIMOIRE</span>
-                <span class="tech-tag">02</span>
-            </div>
+            <div class="btn-content"><i class="fas fa-book"></i><span class="label">GRIMOIRE</span><span class="tech-tag">02</span></div>
         </button>
-        
         <button onclick="openQuestLog()" class="cyber-btn blue-tech">
-            <div class="btn-content">
-                <i class="fas fa-clipboard-list"></i>
-                <span class="label">QUESTS</span>
-                <span class="tech-tag">03</span>
-            </div>
+            <div class="btn-content"><i class="fas fa-clipboard-list"></i><span class="label">QUESTS</span><span class="tech-tag">03</span></div>
         </button>
-        
         <button onclick="forceDailyQuest()" class="cyber-btn grey-tech">
+            <div class="btn-content"><i class="fas fa-dumbbell"></i><span class="label">TRAINING</span><span class="tech-tag">04</span></div>
+        </button>
+
+        <button id="btn-academic" onclick="openAcademicSystem()" class="cyber-btn green-tech system-update-glow">
             <div class="btn-content">
-                <i class="fas fa-dumbbell"></i>
-                <span class="label">TRAINING</span>
-                <span class="tech-tag">04</span>
+                <i class="fas fa-graduation-cap"></i>
+                <span class="label">ACADEMIC</span>
+                <span class="tech-tag">NEW</span> 
             </div>
         </button>
 
@@ -149,12 +157,43 @@
         </button>
     </div>
 
+    <div id="update-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:99999; cursor:pointer;" onclick="closeUpdateIntro()">
+        <div id="update-spotlight" style="position:absolute; border:2px dashed #00ff9d; box-shadow: 0 0 0 9999px rgba(0,0,0,0.9); border-radius:8px; pointer-events:none; transition:all 0.5s ease;"></div>
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; max-width:500px;">
+            <h1 style="color:#00ff9d; font-family:'Orbitron'; font-size:2.5rem; text-shadow:0 0 20px #00ff9d; margin-bottom:10px;">
+                <i class="fas fa-satellite-dish"></i> SYSTEM UPDATE 2.0
+            </h1>
+            <p style="color:#eee; font-family:'Rajdhani'; font-size:1.3rem; line-height:1.6; background:rgba(0, 255, 157, 0.1); padding:20px; border:1px solid #00ff9d; border-radius:10px;">
+                "Hunter, a new module has been installed.<br>
+                Access the <strong>ACADEMIC SYSTEM</strong> to manage your Semester Blueprint."
+            </p>
+            <div style="margin-top:20px; color:#aaa; font-size:0.9rem; animation:blink 1.5s infinite;">
+                [ CLICK ANYWHERE TO ACKNOWLEDGE ]
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-modal-overlay" class="system-overlay hidden">
+        <div class="system-window">
+            <div class="window-header">
+                <i class="fas fa-exclamation-triangle blink-icon"></i> SYSTEM NOTIFICATION
+            </div>
+            <div class="window-content">
+                <h2 id="modal-title" class="glitch-text" data-text="SYSTEM ALERT">SYSTEM ALERT</h2>
+                <p id="modal-message">Processing request...</p>
+                <div class="holo-line"></div>
+            </div>
+            <div class="window-actions" id="modal-actions">
+                </div>
+        </div>
+    </div>
+
     <div id="system-alert" class="system-overlay hidden">
         <div class="alert-box">
             <div class="alert-header"><i class="fas fa-exclamation-circle"></i> SYSTEM ALERT</div>
             <div class="alert-content">
                 <h3 style="color:#007bff; margin:0 0 5px 0; font-family:'Orbitron'">DAILY QUEST: PREPARATION</h3>
-                <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Complete physical training to activate system buff.</p>
+                <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Complete training to activate buffs.</p>
                 <div class="quest-list">
                     <div class="quest-item completed"><input type="checkbox" checked disabled><span>System Check-in (Completed)</span></div>
                     <label class="quest-item" onclick="toggleTask(this)"><input type="checkbox"><span>10 Push-ups (Strength +1)</span></label>
@@ -169,50 +208,40 @@
     </div>
 
     <div id="roadmap-overlay" class="system-overlay hidden">
-    <div class="alert-box" style="width: 800px; border-color: var(--neon-purple); height:85vh; display:flex; flex-direction:column;">
-        
-        <div class="alert-header" style="background: var(--neon-purple); display:flex; justify-content:space-between; align-items:center;">
-            <span><i class="fas fa-compass"></i> THE ORACLE'S PATH</span>
-            <span style="font-size:0.7rem; opacity:0.8;">DATABASE: CONNECTED</span>
-        </div>
-
-        <div class="alert-content" style="flex:1; overflow:hidden; display:flex; flex-direction:column; background:#050505;">
-            
-            <div style="padding: 20px; border-bottom: 1px solid #222;">
-                <p style="color:#aaa; margin-bottom:10px;">Determine your destiny path (e.g., DevOps Engineer, AI Researcher)</p>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="role-input" class="url-input" placeholder="Enter Job Role..." style="margin:0;">
-                    <button class="accept-quest-btn" style="width:auto; background:var(--neon-purple); border-color:var(--neon-purple);" onclick="fetchRoadmap()">
-                        GENERATE PATH
-                    </button>
+        <div class="alert-box" style="width: 800px; border-color: var(--neon-purple); height:85vh; display:flex; flex-direction:column;">
+            <div class="alert-header" style="background: var(--neon-purple); display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fas fa-compass"></i> THE ORACLE'S PATH</span>
+                <span style="font-size:0.7rem; opacity:0.8;">DATABASE: CONNECTED</span>
+            </div>
+            <div class="alert-content" style="flex:1; overflow:hidden; display:flex; flex-direction:column; background:#050505;">
+                <div style="padding: 20px; border-bottom: 1px solid #222;">
+                    <p style="color:#aaa; margin-bottom:10px;">Determine your destiny path.</p>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="role-input" class="url-input" placeholder="Enter Job Role..." style="margin:0;">
+                        <button class="accept-quest-btn" style="width:auto; background:var(--neon-purple); border-color:var(--neon-purple);" onclick="fetchRoadmap()">
+                            GENERATE PATH
+                        </button>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <small style="color:#555; display:block; margin-bottom:5px;">PREVIOUS SIMULATIONS:</small>
+                        <div id="role-history-container" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+                    </div>
                 </div>
-                
-                <div style="margin-top: 15px;">
-                    <small style="color:#555; display:block; margin-bottom:5px;">PREVIOUS SIMULATIONS:</small>
-                    <div id="role-history-container" style="display:flex; flex-wrap:wrap; gap:8px;">
-                        </div>
+                <div id="roadmap-steps" class="nice-scroll" style="flex:1; overflow-y:auto; padding:20px; display:block; text-align:left;"></div>
+                <div id="roadmap-loading" class="hidden" style="text-align:center; padding:50px; color:var(--neon-purple);">
+                    <i class="fas fa-circle-notch fa-spin fa-3x"></i><br><br>ANALYZING SKILL TREES...
                 </div>
             </div>
-
-            <div id="roadmap-steps" class="nice-scroll" style="flex:1; overflow-y:auto; padding:20px; display:block; text-align:left;">
-     </div>
-            <div id="roadmap-loading" class="hidden" style="text-align:center; padding:50px; color:var(--neon-purple);">
-                <i class="fas fa-circle-notch fa-spin fa-3x"></i><br><br>
-                ANALYZING SKILL TREES...
+            <div style="padding:15px; border-top:1px solid #333; text-align:right;">
+                <button class="accept-quest-btn" style="width:auto;" onclick="document.getElementById('roadmap-overlay').style.display='none'">CLOSE ORACLE</button>
             </div>
-
-        </div>
-
-        <div style="padding:15px; border-top:1px solid #333; text-align:right;">
-            <button class="accept-quest-btn" style="width:auto;" onclick="document.getElementById('roadmap-overlay').style.display='none'">CLOSE ORACLE</button>
         </div>
     </div>
-</div>
 
     <div id="grimoire-overlay" class="system-overlay hidden">
         <div class="alert-box" style="width: 700px; border-color: var(--neon-gold); max-height:85vh; display:flex; flex-direction:column;">
             <div class="alert-header" style="background: rgba(255, 215, 0, 0.1); color: var(--neon-gold); border-bottom: 1px solid var(--neon-gold);">
-                <i class="fas fa-book-journal-whills"></i> HUNTER'S GRIMOIRE (NOTES SAVED INTEL)
+                <i class="fas fa-book-journal-whills"></i> HUNTER'S GRIMOIRE
             </div>
             <div id="grimoire-content" style="flex:1; overflow-y: auto; padding: 20px; text-align: left;"></div>
             <div style="padding:15px; border-top:1px solid #333; display:flex; justify-content:flex-end;">
@@ -223,9 +252,7 @@
 
     <div id="quest-log-overlay" class="system-overlay hidden">
         <div class="alert-box" style="width: 600px; border-color: var(--neon-blue);">
-            <div class="alert-header">
-                <i class="fas fa-clipboard-list"></i> ACTIVE CONTRACTS
-            </div>
+            <div class="alert-header"><i class="fas fa-clipboard-list"></i> ACTIVE CONTRACTS</div>
             <div id="quest-log-content" style="padding:20px; max-height:60vh; overflow-y:auto;"></div>
             <div style="padding:10px; text-align:right; border-top:1px solid #333;">
                 <button class="accept-quest-btn" onclick="document.getElementById('quest-log-overlay').style.display='none'" style="width:100%; border-color:var(--neon-blue); color:var(--neon-blue);">CLOSE</button>
@@ -235,16 +262,14 @@
 
     <div id="config-overlay" class="system-overlay hidden">
         <div class="alert-box" style="width: 600px; border-color: var(--neon-blue);">
-            <div class="alert-header">
-                <i class="fas fa-sliders-h"></i> CONFIGURE REWARD PROTOCOL
-            </div>
+            <div class="alert-header"><i class="fas fa-sliders-h"></i> CONFIGURE REWARD PROTOCOL</div>
             <div class="alert-content" style="text-align: center;">
                 <p style="color: #aaa; margin-bottom: 20px;">Choose your source of dopamine.</p>
                 <div class="chip-grid" style="grid-template-columns: repeat(2, 1fr);">
                     <div class="reward-chip active-chip" onclick="selectRewardType('kings', this)">
                         <i class="fas fa-crown" style="color: var(--neon-gold);"></i>
                         <span style="color: var(--neon-gold);">KING'S MINDSET</span>
-                        <small>Domination / Motivation / Anime </small>
+                        <small>Domination / Motivation</small>
                     </div>
                     <div class="reward-chip" onclick="selectRewardType('recovery', this)">
                         <i class="fas fa-leaf" style="color: var(--neon-blue);"></i>
@@ -261,7 +286,6 @@
 
     <div id="leaderboard-panel" class="leaderboard-sidebar closed">
         <div class="neon-edge"></div>
-
         <div class="panel-content">
             <div class="panel-header">
                 <div>
@@ -270,19 +294,14 @@
                     </h2>
                     <small style="color:#777; font-family:'Rajdhani';">SEASON 1 • GLOBAL SERVER</small>
                 </div>
-                <button onclick="toggleLeaderboard()" class="close-icon-btn">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button onclick="toggleLeaderboard()" class="close-icon-btn"><i class="fas fa-times"></i></button>
             </div>
-
             <div class="leaderboard-list-container nice-scroll">
-                
                 <div id="leaderboard-body">
                     <div style="text-align:center; padding:20px; color:#555;">
-                        <i class="fas fa-circle-notch fa-spin"></i> CONNECTING TO DATABASE...
+                        <i class="fas fa-circle-notch fa-spin"></i> CONNECTING...
                     </div>
                 </div>
-
                 <div id="my-sticky-rank" class="rank-row my-rank-sticky hidden">
                     <div class="rank-num" id="my-rank-num" style="color:var(--neon-blue)">-</div>
                     <div class="rank-info">
@@ -291,215 +310,195 @@
                     </div>
                     <div class="rank-xp" id="my-rank-xp" style="color:white">0 XP</div>
                 </div>
-
             </div> 
         </div> 
     </div>
 
-<div id="levelup-overlay" class="system-overlay hidden" style="backdrop-filter: blur(10px);">
-    <div class="levelup-card">
-        
-        <div class="levelup-header">
-            <h1 class="glitch-text" data-text="SYSTEM ALERT">SYSTEM ALERT</h1>
-        </div>
-
-        <div class="levelup-body">
-            <h2 style="color:var(--neon-gold); font-family:'Orbitron'; font-size:2.5rem; margin:10px 0;">LEVEL UP!</h2>
-            
-            <div class="stat-comparison">
-                <div class="stat-old">LVL <span id="lvl-old">5</span></div>
-                <div class="arrow">➜</div>
-                <div class="stat-new">LVL <span id="lvl-new">6</span></div>
+    <div id="levelup-overlay" class="system-overlay hidden" style="backdrop-filter: blur(10px);">
+        <div class="levelup-card">
+            <div class="levelup-header">
+                <h1 class="glitch-text" data-text="SYSTEM ALERT">SYSTEM ALERT</h1>
             </div>
-
-            <p style="color:#aaa; font-size:0.9rem;">Your stats have increased.</p>
-            
-            <div class="rewards-grid">
-                <div class="reward-item">STR <span style="color:var(--neon-blue)">+2</span></div>
-                <div class="reward-item">INT <span style="color:var(--neon-blue)">+2</span></div>
-                <div class="reward-item">AGI <span style="color:var(--neon-blue)">+1</span></div>
+            <div class="levelup-body">
+                <h2 style="color:var(--neon-gold); font-family:'Orbitron'; font-size:2.5rem; margin:10px 0;">LEVEL UP!</h2>
+                <div class="stat-comparison">
+                    <div class="stat-old">LVL <span id="lvl-old">5</span></div>
+                    <div class="arrow">➜</div>
+                    <div class="stat-new">LVL <span id="lvl-new">6</span></div>
+                </div>
+                <p style="color:#aaa; font-size:0.9rem;">Your stats have increased.</p>
+                <div class="rewards-grid">
+                    <div class="reward-item">STR <span style="color:var(--neon-blue)">+2</span></div>
+                    <div class="reward-item">INT <span style="color:var(--neon-blue)">+2</span></div>
+                    <div class="reward-item">AGI <span style="color:var(--neon-blue)">+1</span></div>
+                </div>
             </div>
+            <button onclick="closeLevelUp()" class="accept-quest-btn" style="margin-top:20px; width:100%;">ACCEPT REALITY</button>
         </div>
-
-        <button onclick="closeLevelUp()" class="accept-quest-btn" style="margin-top:20px; width:100%;">
-            ACCEPT REALITY
-        </button>
     </div>
-</div>
-<div class="guild-floater" onclick="openGuildInterface()">
-    <div class="guild-glow"></div>
-    <div class="guild-content-wrapper">
-        <i class="fas fa-crown"></i>
-        <span class="guild-label">GUILD</span>
-    </div>
-</div>
-<div id="guild-modal" class="system-overlay hidden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
-    <div class="alert-box" style="width: 700px; border-color: var(--neon-gold); background:#0a0f1e; border: 1px solid #FFD700; padding:0; display:flex; flex-direction:column;">
-        
-        <div class="alert-header" style="background: rgba(255, 215, 0, 0.1); color: var(--neon-gold); padding:15px; border-bottom:1px solid #FFD700; font-family:'Orbitron'; display:flex; justify-content:space-between; align-items:center;">
-            <span><i class="fas fa-dungeon"></i> HUNTER GUILD ASSOCIATION</span>
-            <button onclick="closeGuildInterface()" style="background:none; border:none; color:#FFD700; cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+
+    <div class="guild-floater" onclick="openGuildInterface()">
+        <div class="guild-glow"></div>
+        <div class="guild-content-wrapper">
+            <i class="fas fa-crown"></i>
+            <span class="guild-label">GUILD</span>
         </div>
+    </div>
 
-        <div id="guild-main-content" style="padding: 30px;">
-            
-            <div id="guild-auth-view" style="display: flex; gap: 20px;">
-                <div style="flex: 1; border-right: 1px solid #333; padding-right: 20px;">
-                    <h3 style="color:white; font-family:'Orbitron'; margin-top:0;">JOIN A GUILD</h3>
-                    <p style="color:#aaa; font-size:0.9rem;">Enter an invite code to join.</p>
-                    
-                    <input type="text" id="friend-code-input" class="url-input" placeholder="ENTER CODE (e.g. SL-8842)" 
-                           style="width: 100%; text-transform:uppercase; background:#111; color:white; border:1px solid #333; padding:10px; margin-bottom:10px;">
-                    
-                    <button onclick="joinFriendGuild()" class="accept-quest-btn" style="width: 100%; margin-top: 10px;">
-                        JOIN SQUAD
-                    </button>
-                </div>
-
-                <div style="flex: 1; padding-left: 10px;">
-                    <h3 style="color:var(--neon-gold); font-family:'Orbitron'; margin-top:0;">FOUND A GUILD</h3>
-                    <p style="color:#aaa; font-size:0.9rem;">Become a Guild Master.</p>
-                    
-                    <input type="text" id="new-guild-name" class="url-input" placeholder="GUILD NAME (e.g. Ahjin)" 
-                           style="width: 100%; background:#111; color:white; border:1px solid #333; padding:10px; margin-bottom:10px;">
-                    
-                    <button onclick="createGuild()" class="accept-quest-btn" style="width: 100%; margin-top: 10px; border-color: var(--neon-gold); color: var(--neon-gold);">
-                        ESTABLISH GUILD
-                    </button>
-                </div>
+    <div id="guild-modal" class="system-overlay hidden">
+        <div class="alert-box" style="width: 700px; border-color: var(--neon-gold); background:#0a0f1e; border: 1px solid #FFD700; padding:0; display:flex; flex-direction:column;">
+            <div class="alert-header" style="background: rgba(255, 215, 0, 0.1); color: var(--neon-gold); padding:15px; border-bottom:1px solid #FFD700; font-family:'Orbitron'; display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fas fa-dungeon"></i> HUNTER GUILD ASSOCIATION</span>
+                <button onclick="closeGuildInterface()" style="background:none; border:none; color:#FFD700; cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
             </div>
-
-            <div id="my-guild-view" class="hidden" style="text-align: center;">
-                <h2 id="display-guild-name" style="color:var(--neon-gold); font-family:'Orbitron'; font-size:2rem; margin:10px 0;">AHJIN GUILD</h2>
-                
-                <div style="background: rgba(255,215,0,0.1); padding: 10px 20px; border-radius: 5px; display: inline-block; margin-bottom: 20px; border:1px dashed #FFD700;">
-                    INVITE CODE: <strong id="display-guild-code" style="color:white; letter-spacing: 2px; font-size:1.2rem;">LOADING...</strong>
-                </div>
-
-                <div style="text-align: left; margin-top: 10px; background:#111; padding:15px; border-radius:8px;">
-                    <h4 style="color:#aaa; border-bottom:1px solid #333; padding-bottom:5px; margin-top:0;">GUILD MEMBERS</h4>
-                    <div id="guild-members-list" class="nice-scroll" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
-                        <div style="color:#555; font-style:italic;">Scanning members...</div>
+            <div id="guild-main-content" style="padding: 30px;">
+                <div id="guild-auth-view" style="display: flex; gap: 20px;">
+                    <div style="flex: 1; border-right: 1px solid #333; padding-right: 20px;">
+                        <h3 style="color:white; font-family:'Orbitron'; margin-top:0;">JOIN A GUILD</h3>
+                        <p style="color:#aaa; font-size:0.9rem;">Enter an invite code to join.</p>
+                        <input type="text" id="friend-code-input" class="url-input" placeholder="ENTER CODE (e.g. SL-8842)" 
+                               style="width: 100%; text-transform:uppercase; background:#111; color:white; border:1px solid #333; padding:10px; margin-bottom:10px;">
+                        <button onclick="joinFriendGuild()" class="accept-quest-btn" style="width: 100%; margin-top: 10px;">JOIN SQUAD</button>
+                    </div>
+                    <div style="flex: 1; padding-left: 10px;">
+                        <h3 style="color:var(--neon-gold); font-family:'Orbitron'; margin-top:0;">FOUND A GUILD</h3>
+                        <p style="color:#aaa; font-size:0.9rem;">Become a Guild Master.</p>
+                        <input type="text" id="new-guild-name" class="url-input" placeholder="GUILD NAME (e.g. Ahjin)" 
+                               style="width: 100%; background:#111; color:white; border:1px solid #333; padding:10px; margin-bottom:10px;">
+                        <button onclick="createGuild()" class="accept-quest-btn" style="width: 100%; margin-top: 10px; border-color: var(--neon-gold); color: var(--neon-gold);">ESTABLISH GUILD</button>
                     </div>
                 </div>
-
-                <div style="margin-top:20px;">
-                    <button onclick="leaveGuild()" class="action-btn" style="background:#333; color:#aaa; font-size:0.8rem; padding:5px 10px;">LEAVE GUILD</button>
+                <div id="my-guild-view" class="hidden" style="text-align: center;">
+                    <h2 id="display-guild-name" style="color:var(--neon-gold); font-family:'Orbitron'; font-size:2rem; margin:10px 0;">AHJIN GUILD</h2>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px 20px; border-radius: 5px; display: inline-block; margin-bottom: 20px; border:1px dashed #FFD700;">
+                        INVITE CODE: <strong id="display-guild-code" style="color:white; letter-spacing: 2px; font-size:1.2rem;">LOADING...</strong>
+                    </div>
+                    <div style="text-align: left; margin-top: 10px; background:#111; padding:15px; border-radius:8px;">
+                        <h4 style="color:#aaa; border-bottom:1px solid #333; padding-bottom:5px; margin-top:0;">GUILD MEMBERS</h4>
+                        <div id="guild-members-list" class="nice-scroll" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="color:#555; font-style:italic;">Scanning members...</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:20px;">
+                        <button onclick="leaveGuild()" class="action-btn" style="background:#333; color:#aaa; font-size:0.8rem; padding:5px 10px;">LEAVE GUILD</button>
+                    </div>
                 </div>
             </div>
-
         </div>
     </div>
-</div>
-
 
     <script type="module" src="js/firebase-config.js"></script>
-    <script type="module" src="js/hunter-db.js"></script>
     <script type="module" src="js/leaderboard.js"></script>
     <script type="module" src="js/guild.js"></script>
     <script type="module" src="js/roadmap.js"></script>
+    <script type="module" src="js/hunter-db.js"></script>
     <script src="js/game-map.js"></script>
     <script src="js/audio-manager.js"></script>
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script> 
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        // 🔥 Toggle Function for Side Panel
         function toggleLeaderboard() {
             const panel = document.getElementById('leaderboard-panel');
-            panel.classList.toggle('closed');
-            
-            // Audio Effect (Optional)
-            if(window.audioSys) audioSys.play('hover');
+            if(panel) {
+                panel.classList.toggle('closed');
+                if(window.audioSys) audioSys.play('hover');
+            }
         }
     </script>
+
     <script type="module">
-    import { auth, db } from './js/firebase-config.js';
-    import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { auth, db } from './js/firebase-config.js';
+        import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // 🔥 1. AUTO-LOAD NAME ON REFRESH (Ye hai asli fix)
-    onAuthStateChanged(auth, async (user) => {
-        const nameText = document.getElementById('player-name');
-        
-        if (user) {
-            // Step A: Auth Profile se naam uthao (Fastest)
-            if(user.displayName) {
-                nameText.innerText = user.displayName.toUpperCase();
+        // 1. AUTO-LOAD NAME
+        onAuthStateChanged(auth, async (user) => {
+            const nameText = document.getElementById('player-name');
+            if (!nameText) return;
+
+            if (user) {
+                // Get Name Priority: Database > Auth > "Unknown"
+                if(user.displayName) nameText.innerText = user.displayName.toUpperCase();
+
+                const userRef = doc(db, "users", user.uid);
+                try {
+                    const docSnap = await getDoc(userRef);
+                    if (docSnap.exists() && docSnap.data().displayName) {
+                        nameText.innerText = docSnap.data().displayName.toUpperCase();
+                        localStorage.setItem('hunter_name', docSnap.data().displayName.toUpperCase());
+                    }
+                } catch(e) { console.log("Name fetch warning:", e); }
+            } else {
+                nameText.innerText = "UNKNOWN HUNTER";
+            }
+        });
+
+        // 2. EXPOSE FUNCTIONS
+        window.enableEditMode = function() {
+            const nameText = document.getElementById('player-name');
+            const nameInput = document.getElementById('edit-name-input');
+            if(!nameText || !nameInput) return;
+
+            nameInput.value = nameText.innerText;
+            nameText.style.display = 'none';
+            nameInput.style.display = 'block';
+            nameInput.focus();
+        };
+
+        window.checkEnterKey = function(event) {
+            if (event.key === "Enter") {
+                window.saveNewName(); 
+            }
+        };
+
+        // 🔥 FIX: ROBUST NAME SYNC
+        window.saveNewName = async function() {
+            const nameText = document.getElementById('player-name');
+            const nameInput = document.getElementById('edit-name-input');
+            let newName = nameInput.value.trim();
+
+            if (!newName) {
+                nameInput.style.display = 'none';
+                nameText.style.display = 'block';
+                return;
             }
 
-            // Step B: Firestore se confirm karo (Most Accurate)
-            const userRef = doc(db, "users", user.uid);
-            const docSnap = await getDoc(userRef);
-            
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if(data.displayName) {
-                    nameText.innerText = data.displayName.toUpperCase();
-                }
-            }
-        } else {
-            // Agar koi login nahi hai
-            nameText.innerText = "UNKNOWN HUNTER";
-        }
-    });
+            newName = newName.toUpperCase();
 
-    // ---------------------------------------------------------
-    // 2. EDIT MODE LOGIC (Jo pehle diya tha)
-    // ---------------------------------------------------------
-    window.enableEditMode = function() {
-        const nameText = document.getElementById('player-name');
-        const nameInput = document.getElementById('edit-name-input');
-
-        nameInput.value = nameText.innerText;
-        nameText.style.display = 'none';
-        nameInput.style.display = 'block';
-        nameInput.focus();
-    };
-
-    window.checkEnterKey = function(event) {
-        if (event.key === "Enter") {
-            saveNewName();
-        }
-    };
-
-    window.saveNewName = async function() {
-        const nameText = document.getElementById('player-name');
-        const nameInput = document.getElementById('edit-name-input');
-        let newName = nameInput.value.trim();
-
-        if (!newName) {
+            // 1. UI Update Immediately
             nameInput.style.display = 'none';
             nameText.style.display = 'block';
-            return;
-        }
+            nameText.innerText = newName; 
 
-        newName = newName.toUpperCase();
+            const user = auth.currentUser;
+            if(!user) return;
 
-        // UI Instant Update
-        nameInput.style.display = 'none';
-        nameText.style.display = 'block';
-        nameText.innerText = newName; 
+            try {
+                // 2. Clear Old Cache
+                localStorage.removeItem('hunter_name');
+                localStorage.setItem('hunter_name', newName);
 
-        const user = auth.currentUser;
-        if(user && user.displayName === newName) return;
-
-        try {
-            console.log("🔄 Saving to Database...");
-            if(user) await updateProfile(user, { displayName: newName });
-            if(user) {
+                // 3. Update Auth
+                await updateProfile(user, { displayName: newName });
+                
+                // 4. Update Database (With Merge)
                 const userRef = doc(db, "users", user.uid);
-                await updateDoc(userRef, { displayName: newName });
-            }
-            console.log("✅ Identity Saved Permanently");
-        } catch (error) {
-            console.error("❌ Update Failed:", error);
-        }
-    };
-</script>
+                await setDoc(userRef, { displayName: newName }, { merge: true });
+                
+                console.log("✅ Identity Saved & Synced");
 
+                // 5. Force Reload for Leaderboard Update
+                setTimeout(() => {
+                    location.reload(); 
+                }, 500);
+
+            } catch (error) {
+                console.error("❌ Save Failed:", error);
+                alert("System Error: Could not update database.");
+            }
+        };
+    </script>
 </body>
 </html>
