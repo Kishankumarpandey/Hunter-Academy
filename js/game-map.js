@@ -1,34 +1,40 @@
 // js/game-map.js
 
+// 1. SAFETY CHECK: Cloud Sync Function
 const syncXPToCloud = window.syncXPToCloud || function(xp) { 
     console.log("⚠️ Cloud Sync Skipped (Function not loaded)"); 
 };
-// =============================================================
-// 🔥 SERVER CONFIG (Sabse upar paste karein)
-// =============================================================
 
+// =============================================================
+// 🔥 SERVER CONFIG (LOCALHOST vs RENDER) - TOP PRIORITY
+// =============================================================
 const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:3001'                          // 🏠 Local Mode
     : 'https://hunter-academy-1.onrender.com';         // ☁️ Render Mode
 
 console.log(`📡 Page Connected to: ${API_BASE_URL}`);
 
-// ... Iske neeche baaki code shuru hoga ...
 // =============================================================
 // 🔥 1. INITIALIZATION & LOAD
 // =============================================================
-
 let previousLevel = 0; 
 
 window.onload = function() {
     updatePlayerStats(); 
     loadRecentDungeons(); 
+    
+    // Effects Load
     if(typeof initSpotlightEffect === 'function') initSpotlightEffect();
+    
+    // Guild HUD Update Call
+    if(typeof updateGuildHUD === 'function') updateGuildHUD();
+
     // Inject Header Controls if Roadmap is already open
     if(document.getElementById('roadmap-overlay') && !document.getElementById('roadmap-overlay').classList.contains('hidden')) {
         injectHeaderControls();
     }
 
+    // User Info Load
     const userStr = localStorage.getItem('user_info');
     if(userStr) {
         const user = JSON.parse(userStr);
@@ -41,7 +47,6 @@ window.onload = function() {
 // =============================================================
 // 🔥 2. CORE STATS LOGIC
 // =============================================================
-
 function updatePlayerStats() {
     let totalXP = parseInt(localStorage.getItem('add_xp') || "0");
     let currentLevel = Math.floor(totalXP / 100) + 1;
@@ -80,7 +85,6 @@ function getRankName(level) {
 // =============================================================
 // 🔥 3. LEVEL UP HANDLERS
 // =============================================================
-
 function showLevelUp(oldLvl, newLvl) {
     const overlay = document.getElementById('levelup-overlay');
     if(!overlay) return;
@@ -101,7 +105,6 @@ window.closeLevelUp = function() {
 // =============================================================
 // 🔥 4. DUNGEON HISTORY SYSTEM
 // =============================================================
-
 async function enterGate() {
     const urlInput = document.getElementById('dashboard-url');
     const url = urlInput.value.trim();
@@ -166,6 +169,9 @@ function saveHistory(newEntry) {
     history.unshift(newEntry);
     if(history.length > 6) history.pop();
     localStorage.setItem('dungeon_history', JSON.stringify(history));
+    
+    // Cloud Sync
+    if (typeof window.syncHistoryToCloud === 'function') window.syncHistoryToCloud(history);
 }
 
 function loadRecentDungeons() {
@@ -205,16 +211,22 @@ window.removeFromHistory = function(e, url) {
     let history = JSON.parse(localStorage.getItem('dungeon_history')) || []; 
     history = history.filter(h => h.url !== url); 
     localStorage.setItem('dungeon_history', JSON.stringify(history)); 
+    if (typeof window.syncHistoryToCloud === 'function') window.syncHistoryToCloud(history);
     loadRecentDungeons(); 
 }
 
-function clearHistory() { if(confirm("DELETE DUNGEON LOGS?")) { localStorage.removeItem('dungeon_history'); loadRecentDungeons(); } }
+function clearHistory() { 
+    if(confirm("DELETE DUNGEON LOGS?")) { 
+        localStorage.removeItem('dungeon_history'); 
+        if (typeof window.syncHistoryToCloud === 'function') window.syncHistoryToCloud([]);
+        loadRecentDungeons(); 
+    } 
+}
 window.clearHistory = clearHistory;
 
 // =============================================================
-// 🔥 5. QUEST LOGIC (FIXED SELECTORS & DATE LOCK) 🛡️
+// 🔥 5. QUEST LOGIC & DAILY SYSTEM
 // =============================================================
-
 let questTimerInterval; 
 
 function checkDailyQuest() {
@@ -222,33 +234,25 @@ function checkDailyQuest() {
     const todayDate = new Date().toDateString();
 
     if (lastTrainingDate === todayDate) {
-        console.log("System: Daily Limit Reached.");
         showCooldownUI(); 
     } else {
-        console.log("System: New Quest Available.");
         showQuestOverlay();
     }
 }
-
 
 window.forceDailyQuest = function() { 
     checkDailyQuest(); 
 }
 
-// --- CASE 1: QUEST BAAKI HAI ---
 function showQuestOverlay() {
     const alertBox = document.getElementById('system-alert');
-    if(!alertBox) return console.error("❌ 'system-alert' not found in HTML");
-
-    // 🛑 FIX 2: Using '.alert-box' instead of '.modal-box' to match HTML
-    const modalBox = alertBox.querySelector('.alert-box'); 
-    
-    if(!modalBox) return console.error("❌ '.alert-box' class not found inside system-alert");
+    if(!alertBox) return;
+    const modalBox = alertBox.querySelector('.alert-box');
+    if(!modalBox) return;
 
     alertBox.classList.remove('hidden');
     alertBox.style.display = 'flex';
     
-    // Inject Normal Quest Content
     modalBox.innerHTML = `
         <div class="alert-header"><i class="fas fa-exclamation-circle"></i> SYSTEM ALERT</div>
         <div class="alert-content">
@@ -271,42 +275,33 @@ function showQuestOverlay() {
             </div>
         </div>
     `;
-
-    if(window.audioSys && window.audioSys.play) window.audioSys.play('click');
+    if(window.audioSys) window.audioSys.play('click');
 }
 
-// --- CASE 2: QUEST DONE (COOLDOWN) ---
 function showCooldownUI() {
     const alertBox = document.getElementById('system-alert');
     if(!alertBox) return;
-
-    // 🛑 FIX 2: Matched class name here too
     const modalBox = alertBox.querySelector('.alert-box');
     if(!modalBox) return;
 
     alertBox.classList.remove('hidden');
     alertBox.style.display = 'flex';
 
-    // Inject Timer Content
     modalBox.innerHTML = `
         <div style="text-align:center; padding: 20px;">
             <i class="fas fa-lock" style="font-size:3rem; color:#ff3333; margin-bottom:15px; text-shadow: 0 0 15px red;"></i>
             <h2 style="color:#ff3333; font-family:'Orbitron'; margin:0;">SYSTEM LIMIT REACHED</h2>
             <p style="color:#aaa; margin-top:10px;">Recovery in progress. Next Quest:</p>
-            
             <div id="quest-countdown" style="font-size: 2rem; color: #fff; font-family: monospace; background: #111; padding: 15px; border: 1px solid #333; border-radius: 8px; margin: 20px 0;">Calculating...</div>
-
             <button onclick="document.getElementById('system-alert').style.display='none'" style="background: transparent; border: 1px solid #555; color: #777; padding: 10px 30px; cursor: pointer; border-radius: 5px;">CLOSE</button>
         </div>
     `;
-
     startCountdown();
 }
 
 function startCountdown() {
     const timerDisplay = document.getElementById('quest-countdown');
     if(!timerDisplay) return;
-
     if (questTimerInterval) clearInterval(questTimerInterval);
 
     questTimerInterval = setInterval(() => {
@@ -320,31 +315,26 @@ function startCountdown() {
             location.reload(); 
             return;
         }
-
         const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((diff % (1000 * 60)) / 1000);
-
         timerDisplay.innerText = `${h.toString().padStart(2, '0')}h : ${m.toString().padStart(2, '0')}m : ${s.toString().padStart(2, '0')}s`;
     }, 1000);
 }
 
-// --- UI HELPERS ---
 window.toggleTask = function(element) {
     const checkbox = element.querySelector('input');
     checkbox.checked = !checkbox.checked;
-    
     if (checkbox.checked) element.classList.add('completed'); 
     else element.classList.remove('completed');
     
     const totalChecked = document.querySelectorAll('.quest-item input:checked').length;
     const btn = document.getElementById('claim-btn');
-
     if(btn) {
         if(totalChecked >= 3) { 
             btn.innerText = "CLAIM REWARD"; 
             btn.classList.add('ready'); 
-            if(window.audioSys && window.audioSys.play) window.audioSys.play('hover');
+            if(window.audioSys) window.audioSys.play('hover');
         } else { 
             btn.innerText = "INCOMPLETE"; 
             btn.classList.remove('ready'); 
@@ -358,18 +348,14 @@ window.completeDailyQuest = function() {
     
     const rewardXP = 50; 
     localStorage.setItem('add_xp', parseInt(localStorage.getItem('add_xp') || "0") + rewardXP);
-    
-    // 🔥 SAVE DATE
     const todayDate = new Date().toDateString();
     localStorage.setItem('last_training_date', todayDate);
     
-    if(window.audioSys && window.audioSys.play) window.audioSys.play('levelUp');
+    if(window.audioSys) window.audioSys.play('levelUp');
     updatePlayerStats();
     
     alert("💪 TRAINING COMPLETE! (+50 XP)\nSystem entering cooldown mode.");
     showCooldownUI(); 
-    
-    // Trigger Cloud Sync
     if(typeof syncXPToCloud === 'function') syncXPToCloud(parseInt(localStorage.getItem('add_xp')));
 }
 
@@ -380,21 +366,13 @@ window.skipDailyQuest = function() {
 }
 
 // =============================================================
-// 🔥 6. ROADMAP & UTILS (Missing Handlers Fixed)
+// 🔥 6. ROADMAP & UTILS
 // =============================================================
-
 window.handleLogout = function() { if(confirm("Disconnect?")) { localStorage.removeItem('user_info'); window.location.href = 'index.html'; } }
 window.resetProgress = function() { 
     if(confirm("⚠️ WARNING: THIS CANNOT BE UNDONE.\nReset all Level & XP?")) { 
-        
-        // 1. Local Reset
         localStorage.setItem('add_xp', 0); 
-        
-        // 2. Cloud Reset (Database ko bhi 0 bhejo)
-        if(typeof syncXPToCloud === 'function') {
-            syncXPToCloud(0); 
-        }
-
+        if(typeof syncXPToCloud === 'function') syncXPToCloud(0);
         location.reload(); 
     } 
 }
@@ -411,13 +389,12 @@ window.openConfig = function() {
         configPanel.classList.remove('hidden');
         configPanel.style.display = 'flex';
     } else {
-        alert("⚙️ SYSTEM SETTINGS:\n\n- Audio: ON\n- Notifications: ENABLED\n- AI Agent: IGRIS (Active)");
+        alert("⚙️ SYSTEM SETTINGS:\n\n- Audio: ON\n- Notifications: ENABLED");
     }
 };
 
 window.closeConfig = function() {
-    const configPanel = document.getElementById('config-overlay');
-    if(configPanel) configPanel.style.display = 'none';
+    document.getElementById('config-overlay').style.display = 'none';
 }
 
 window.openGrimoire = function() {
@@ -425,7 +402,6 @@ window.openGrimoire = function() {
     if(grimoirePanel) {
         grimoirePanel.classList.remove('hidden');
         grimoirePanel.style.display = 'flex';
-        // Load data logic here if needed
     } else {
         alert("Grimoire is accessible inside Dungeon Mode.");
     }
@@ -461,7 +437,6 @@ function injectHeaderControls() {
             <i class="fas fa-times"></i>
         </button>
     `;
-
     header.style.display = 'flex';
     header.style.alignItems = 'center';
     header.appendChild(controls);
@@ -564,9 +539,8 @@ function renderRoadmap(steps) {
     });
 }
 
-
 // =============================================================
-// 🔥 ULTRA PDF (Screenshot Method — NO WHITE PAGE EVER)
+// 🔥 ULTRA PDF (Screenshot Method)
 // =============================================================
 window.downloadRoadmap = async function () {
     const target = document.getElementById('roadmap-steps');
@@ -574,44 +548,33 @@ window.downloadRoadmap = async function () {
 
     const btn = document.getElementById('header-dl-btn');
     const originalText = btn ? btn.innerHTML : "";
-
     if (btn) btn.innerHTML = "Preparing...";
 
     try {
-        // Force black background temporarily
         const originalBg = target.style.background;
         target.style.background = "#000000";
 
-        // Convert DOM to image
         const dataUrl = await domtoimage.toPng(target, {
             quality: 1,
             bgcolor: "#000000",
             width: target.scrollWidth,
             height: target.scrollHeight,
-            style: {
-                transform: 'scale(1)',
-                transformOrigin: 'top left'
-            }
+            style: { transform: 'scale(1)', transformOrigin: 'top left' }
         });
 
-        // Create PDF
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'px', 'a4');
-
         const img = new Image();
         img.src = dataUrl;
 
         img.onload = function () {
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (img.height * pdfWidth) / img.width;
-
             pdf.addImage(img, 'PNG', 0, 0, pdfWidth, pdfHeight);
             pdf.save("Hunter_Roadmap_Intel.pdf");
-
             if (btn) btn.innerHTML = originalText;
             target.style.background = originalBg;
         };
-
     } catch (err) {
         console.error(err);
         if (btn) btn.innerHTML = originalText;
@@ -619,14 +582,11 @@ window.downloadRoadmap = async function () {
     }
 };
 
-
-// ✅ ISSE RAKHO (Ye Sahi hai)
-// ============================================
-// 🔄 UPDATED: ACADEMIC SYSTEM OPENER
-// ============================================
-
+// =============================================================
+// 🔥 7. ACADEMIC SYSTEM CONNECTION
+// =============================================================
 window.openAcademicSystem = async function() {
-    const savedBlueprint = localStorage.getItem('hunter_blueprint'); // Defined here!
+    const savedBlueprint = localStorage.getItem('hunter_blueprint'); 
 
     if (savedBlueprint) {
         console.log("System: Access Granted.");
@@ -634,253 +594,204 @@ window.openAcademicSystem = async function() {
         document.body.style.opacity = "0";
         setTimeout(() => window.location.href = 'study-dashboard.html', 500);
     } else {
-        // ... Confirmation Logic ...
         const userChoice = await showSystemConfirm(
             "BLUEPRINT NOT FOUND", 
             "The Architect requires a semester strategy to proceed."
         );
-        if (userChoice === true) window.location.href = 'study-os.html';
+        if (userChoice === true) {
+            window.location.href = 'study-os.html';
+        }
     }
 };
-// ============================================
-// 🔥 CUSTOM SYSTEM CONFIRMATION (NO MORE BORING ALERTS)
-// ============================================
 
-let confirmResolver = null; // To store the Promise resolve function
+// ============================================
+// 🔥 CUSTOM SYSTEM CONFIRMATION
+// ============================================
+let confirmResolver = null;
 
 function showSystemConfirm(title, message) {
     return new Promise((resolve) => {
-        // 1. Set Content
         const modal = document.getElementById('custom-confirm-modal');
+        if(!modal) {
+            alert(message); 
+            if(confirm("Proceed?")) resolve(true); else resolve(false);
+            return;
+        }
         const titleEl = modal.querySelector('h2');
         const msgEl = document.getElementById('confirm-msg');
         
         if (title) titleEl.innerText = title;
         if (message) msgEl.innerText = message;
 
-        // 2. Show Modal with Animation
         modal.classList.remove('hidden');
-        
-        // 3. Play Notification Sound (If you have audio sys)
-        if(window.audioSys) window.audioSys.play('hover'); // or 'alert'
-
-        // 4. Store resolve for button clicks
+        if(window.audioSys) window.audioSys.play('hover');
         confirmResolver = resolve;
     });
 }
 
-function closeCustomConfirm(result) {
+window.closeCustomConfirm = function(result) {
     const modal = document.getElementById('custom-confirm-modal');
     modal.classList.add('hidden');
-    
-    // Resolve the promise based on button click (True/False)
     if (confirmResolver) {
         confirmResolver(result);
         confirmResolver = null;
     }
 }
 
-// ============================================
-// 🔄 UPDATED: ACADEMIC SYSTEM OPENER
-// ============================================
+// =============================================================
+// 🔥 8. GUILD HUD SYSTEM (CLASSIC STYLE UPDATED)
+// =============================================================
 
-// 🔥 Is function ko replace karein purane wale se
-window.openAcademicSystem = async function() {
-    const savedBlueprint = localStorage.getItem('hunter_blueprint');
+window.updateGuildHUD = function() {
+    const btn = document.querySelector('.guild-floater');
+    const icon = document.getElementById('guild-floater-icon');
+    
+    if (!btn || !icon) return;
 
-    if (savedBlueprint) {
-        console.log("System: Access Granted.");
-        document.body.style.transition = "opacity 0.5s";
-        document.body.style.opacity = "0";
-        setTimeout(() => window.location.href = 'study-dashboard.html', 500);
+    // Check Local Data
+    const currentGuild = localStorage.getItem('user_guild') || "SOLO"; 
+
+    if (currentGuild !== "SOLO" && currentGuild !== "Ronin") {
+        // ✅ CASE A: IN A GUILD (Gold Crown)
+        btn.classList.remove('no-guild');
+        btn.title = `Connected: ${currentGuild}`; // Hover par naam dikhega
+        icon.className = "fas fa-crown";
     } else {
-        // 👇 YAHAN MAGIC HOGA (Wait for user click)
-        const userChoice = await showSystemConfirm(
-            "BLUEPRINT NOT FOUND", 
-            "The Architect requires a semester strategy to proceed."
-        );
-
-        if (userChoice === true) {
-            // User clicked INITIALIZE
-            window.location.href = 'study-os.html';
-        } else {
-            // User clicked DECLINE
-            console.log("System: Initialization Aborted.");
+        // ❌ CASE B: NO GUILD (Blue Join Icon)
+        btn.classList.add('no-guild');
+        btn.title = "Join a Guild";
+        icon.className = "fas fa-user-plus"; // Icon change ho jayega
+    }
+}
+// 🔥 BRIDGE: HTML onclick calls this
+window.openGuildInterface = function() {
+    if (window.GuildModule && window.GuildModule.open) {
+        window.GuildModule.open();
+    } else {
+        const modal = document.getElementById('guild-modal');
+        if(modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
         }
+    }
+}
+
+// Purane functions ke sath hook karein
+const originalCreateGuild = window.createGuild;
+window.createGuild = function() {
+    if(originalCreateGuild) originalCreateGuild();
+    // Dummy Update for immediate feedback
+    const name = document.getElementById('new-guild-name').value;
+    if(name) {
+        localStorage.setItem('user_guild', name.toUpperCase());
+        updateGuildHUD();
     }
 };
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-function runTextDecoder(element) {
-  let iteration = 0;
-  const originalText = element.dataset.value; // HTML में data-value एट्रिब्यूट होना चाहिए
-  
-  clearInterval(element.interval);
-  
-  element.interval = setInterval(() => {
-    element.innerText = originalText
-      .split("")
-      .map((letter, index) => {
-        if(index < iteration) {
-          return originalText[index];
-        }
-        return letters[Math.floor(Math.random() * 26)];
-      })
-      .join("");
-    
-    if(iteration >= originalText.length){ 
-      clearInterval(element.interval);
-    }
-    
-    iteration += 1 / 3; // स्पीड कंट्रोल (जितना कम, उतना स्लो)
-  }, 30);
-}
-
-function initSpotlightEffect() {
-  const cards = document.querySelectorAll(".dungeon-card"); // या .spotlight-card
-
-  document.getElementById("recents-grid").onmousemove = e => {
-    for(const card of cards) {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      card.style.setProperty("--mouse-x", `${x}px`);
-      card.style.setProperty("--mouse-y", `${y}px`);
-    }
-  };
-}
-
-// पेज लोड होने पर कॉल करें
-// window.onload में: initSpotlightEffect();
-
-
-
-// --- GUILD FAMILIAR LOGIC (COMPLETE SYSTEM) ---
-
+// =============================================================
+// 🔥 9. PET SYSTEM & TEXT DECODER
+// =============================================================
 let petClickCount = 0;
 let roamInterval;
+const positions = ['pos-bottom-right', 'pos-bottom-left', 'pos-side-right', 'pos-side-left'];
 
-// Positions CSS classes
-const positions = [
-    'pos-bottom-right',
-    'pos-bottom-left', 
-    'pos-side-right',
-    'pos-side-left'
-];
-
-// 1. START PET SYSTEM
 window.showGuildPet = function() {
     const pet = document.getElementById('guild-familiar-container');
     if(pet) {
-        console.log("👻 Summoning Familiar...");
-        pet.classList.remove('hidden'); // Ensure it's not hidden via CSS
-        
-        petClickCount = 0; // Reset clicks
-        movePetRandomly(); // Move immediately
-        
-        // Clear existing interval if any
+        pet.classList.remove('hidden'); 
+        petClickCount = 0;
+        movePetRandomly(); 
         if(roamInterval) clearInterval(roamInterval);
-        
-        // Start roaming every 15 seconds
         roamInterval = setInterval(movePetRandomly, 15000); 
     }
 }
 
-// 2. MOVEMENT LOGIC
 function movePetRandomly() {
     const pet = document.getElementById('guild-familiar-container');
     const card = document.getElementById('familiar-status-card');
-    
     if(!pet) return;
 
-    // Move hone se pehle card ko chupao (taaki hawa me na latke)
     if(card) card.classList.add('hidden');
-
-    // Step A: Hide (Fade Out)
     pet.classList.remove('visible'); 
 
-    // Step B: Wait 1s, Move & Show
     setTimeout(() => {
-        // Remove old position classes
         pet.classList.remove(...positions);
-
-        // Pick new random position
         const randomPos = positions[Math.floor(Math.random() * positions.length)];
-        
-        // Add new position & show
         pet.classList.add(randomPos);
         pet.classList.add('visible');
-        
-        console.log(`Pet moved to: ${randomPos}`);
     }, 1000);
 }
 
-// 3. CLICK INTERACTION (Ye Missing Tha!)
 window.interactWithPet = function() {
     const card = document.getElementById('familiar-status-card');
     const pet = document.getElementById('guild-familiar-container');
-    
     petClickCount++;
-    console.log(`Pet Clicked: ${petClickCount}/3`);
 
-    // --- CASE A: 3 Baar Click kiya -> GAYAB ---
     if (petClickCount >= 3) {
-        if(card) card.classList.add('hidden'); // Card chupao
+        if(card) card.classList.add('hidden'); 
         if(pet) {
-            pet.classList.remove('visible'); // Pet fade out
-            setTimeout(() => pet.classList.add('hidden'), 500); // Fully hide
+            pet.classList.remove('visible'); 
+            setTimeout(() => pet.classList.add('hidden'), 500); 
         }
-        clearInterval(roamInterval); // Ghumana band
-        alert("Pet is tired and went to sleep. (Re-open Guild to summon)");
+        clearInterval(roamInterval); 
+        alert("Pet went to sleep.");
         return;
     }
 
-    // --- CASE B: Normal Click -> Show/Hide Details ---
     if (card) {
         if (card.classList.contains('hidden')) {
-            updateFriendStatus(); // Naya data load karo
-            card.classList.remove('hidden'); // Show Card
+            updateFriendStatus(); 
+            card.classList.remove('hidden'); 
         } else {
-            card.classList.add('hidden'); // Hide Card
+            card.classList.add('hidden'); 
         }
     }
 }
 
-// 4. DATA UPDATE (Fake Friend Info)
 function updateFriendStatus() {
     const friends = [
         { name: "Rhea", action: "Watching: Digital Electronics", mood: "🤔 Thinking" },
         { name: "Aman", action: "Solving: K-Map Quiz", mood: "🔥 Focused" },
-        { name: "Kabir", action: "Idle in Lobby", mood: "💤 Sleepy" },
-        { name: "Sanya", action: "Quest: 4-Bit Adder", mood: "⚔️ Battling" }
+        { name: "Kabir", action: "Idle in Lobby", mood: "💤 Sleepy" }
     ];
-    
-    // Pick Random Friend
     const data = friends[Math.floor(Math.random() * friends.length)];
-
-    // Update HTML
-    const nameEl = document.getElementById('friend-name');
-    const actEl = document.getElementById('friend-activity');
-    const moodEl = document.getElementById('friend-mood');
-
-    if(nameEl) nameEl.innerText = data.name;
-    if(actEl) actEl.innerText = data.action;
-    if(moodEl) moodEl.innerText = data.mood;
+    if(document.getElementById('friend-name')) document.getElementById('friend-name').innerText = data.name;
+    if(document.getElementById('friend-activity')) document.getElementById('friend-activity').innerText = data.action;
+    if(document.getElementById('friend-mood')) document.getElementById('friend-mood').innerText = data.mood;
 }
 
-// 5. MANUAL HIDE
-window.hidePet = function() {
-    const pet = document.getElementById('guild-familiar-container');
-    if(pet) {
-        pet.classList.remove('visible');
-        clearInterval(roamInterval);
+// Text Matrix Effect (Restored)
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+function runTextDecoder(element) {
+    let iteration = 0;
+    const originalText = element.dataset.value; 
+    clearInterval(element.interval);
+    element.interval = setInterval(() => {
+        element.innerText = originalText.split("").map((letter, index) => {
+            if(index < iteration) return originalText[index];
+            return letters[Math.floor(Math.random() * 26)];
+        }).join("");
+        if(iteration >= originalText.length) clearInterval(element.interval);
+        iteration += 1 / 3;
+    }, 30);
+}
+
+// Spotlight Effect
+function initSpotlightEffect() {
+    const cards = document.querySelectorAll(".dungeon-card");
+    const grid = document.getElementById("recents-grid");
+    if(grid) {
+        grid.onmousemove = e => {
+            for(const card of cards) {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty("--mouse-x", `${x}px`);
+                card.style.setProperty("--mouse-y", `${y}px`);
+            }
+        };
     }
 }
 
-// 🔥 AUTO START (Testing ke liye)
-setTimeout(() => {
-    if(typeof window.showGuildPet === "function") {
-        window.showGuildPet();
-    }
-}, 1000);
+// Auto Start Pet
+setTimeout(() => { if(typeof window.showGuildPet === "function") window.showGuildPet(); }, 1000);

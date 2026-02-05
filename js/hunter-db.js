@@ -12,56 +12,51 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
         console.log(`🎯 Hunter Identified: ${user.email}`);
+        
+        // 1. Profile & XP Check
         await checkAndCreateProfile(user);
+
+        // 2. 🔥 History Load (Ye naya hai)
+        await loadCloudHistory(user);
+
     } else {
         console.log("👤 No Hunter ID found. Playing as Guest.");
     }
 });
 
-// 🔥 2. SMART PROFILE SYNC (Local vs Cloud check karega)
+// 🔥 2. SMART PROFILE SYNC (XP Handling)
 async function checkAndCreateProfile(user) {
     try {
         const hunterRef = doc(db, "hunters", user.uid);
         const docSnap = await getDoc(hunterRef);
         
-        // Local Storage se current XP uthao
         const localXP = parseInt(localStorage.getItem('add_xp') || "0");
 
         if (!docSnap.exists()) {
-            // 🔥 CASE A: New User (Cloud par account nahi hai)
+            // New User
             await setDoc(hunterRef, {
                 codename: user.displayName || "Unknown Hunter",
                 email: user.email,
                 rank: "E-Rank",
-                total_xp: localXP, // Local XP se start karo
+                total_xp: localXP,
                 guild: "Ronin", 
+                dungeonHistory: [], // Empty history start karo
                 createdAt: new Date()
             });
-            console.log(`✅ New Profile Created. Synced Local XP: ${localXP}`);
+            console.log(`✅ New Profile Created.`);
         } else {
-            // 🔥 CASE B: Old User (Account hai, sync check karo)
+            // Old User - Sync XP
             const cloudData = docSnap.data();
             const cloudXP = cloudData.total_xp || 0;
 
-            console.log(`📊 SYNC CHECK: Local (${localXP}) vs Cloud (${cloudXP})`);
-
             if (localXP > cloudXP) {
-                // ✅ Local aage hai -> Cloud ko update karo
                 await updateDoc(hunterRef, { total_xp: localXP });
-                console.log("☁️ Cloud Updated to match Local Progress.");
+                console.log("☁️ Cloud Updated (XP).");
             } 
             else if (cloudXP > localXP) {
-                // ✅ Cloud aage hai -> Local update karo
                 localStorage.setItem('add_xp', cloudXP);
-                console.log("💻 Local Updated to match Cloud Progress.");
-                
-                // UI refresh agar page par XP dikh raha hai
-                if(document.getElementById('xp-text')) {
-                    location.reload(); 
-                }
-            }
-            else {
-                console.log("✅ Data is already Synced.");
+                console.log("💻 Local Updated (XP).");
+                if(document.getElementById('xp-text')) location.reload(); 
             }
         }
     } catch (e) {
@@ -69,28 +64,59 @@ async function checkAndCreateProfile(user) {
     }
 }
 
-// 🔥 3. GLOBAL XP SYNC FUNCTION 
-// (Isse hum Window object se jod rahe hain taaki game-map.js ise use kar sake)
-window.syncXPToCloud = async function(amount) {
-    if (!currentUser) {
-        console.warn("⚠️ Guest Mode: XP saved locally only.");
-        return; 
-    }
+// 🔥 3. LOAD HISTORY FROM CLOUD (New Function)
+async function loadCloudHistory(user) {
+    try {
+        const hunterRef = doc(db, "hunters", user.uid);
+        const docSnap = await getDoc(hunterRef);
 
-    // Agar hume exact value set karni hai (Total XP overwrite)
-    // Ya agar hume increment karna hai (Existing XP + New XP)
-    // Yahan hum increment use karenge safe updates ke liye
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.dungeonHistory && Array.isArray(data.dungeonHistory)) {
+                // Cloud se LocalStorage me daalo
+                localStorage.setItem('dungeon_history', JSON.stringify(data.dungeonHistory));
+                console.log("📜 Dungeon History Restored from Cloud.");
+                
+                // UI Refresh karo
+                if (typeof window.loadRecentDungeons === 'function') {
+                    window.loadRecentDungeons();
+                }
+            }
+        }
+    } catch (error) {
+        console.error("History Load Error:", error);
+    }
+}
+
+// 🔥 4. GLOBAL SYNC FUNCTIONS (Window se connect)
+
+// A. XP Sync
+window.syncXPToCloud = async function(amount) {
+    if (!currentUser) return;
+    const hunterRef = doc(db, "hunters", currentUser.uid);
+    try {
+        await updateDoc(hunterRef, { total_xp: increment(amount) });
+        console.log(`☁️ XP Synced: +${amount}`);
+    } catch (e) {
+        console.error("XP Sync Failed:", e);
+    }
+};
+
+// B. History Sync (Ye function missing tha!)
+window.syncHistoryToCloud = async function(historyArray) {
+    if (!currentUser) return; // Login nahi to return
     
     const hunterRef = doc(db, "hunters", currentUser.uid);
-
     try {
-        // Cloud par add karo
-        await updateDoc(hunterRef, {
-            total_xp: increment(amount)
+        // Sirf history update karo, baaki data (XP) ko mat chedo (merge: true ki zaroorat nahi updateDoc me)
+        await updateDoc(hunterRef, { 
+            dungeonHistory: historyArray,
+            lastActive: new Date()
         });
-        
-        console.log(`☁️ Cloud Sync Success: +${amount} XP Uploaded.`);
-    } catch (e) {
-        console.error("❌ Sync Failed:", e);
+        console.log("☁️ History Synced to Cloud!");
+    } catch (error) {
+        // Agar document nahi bana hai to setDoc use karo
+        console.warn("Update failed, trying setDoc...", error);
+        await setDoc(hunterRef, { dungeonHistory: historyArray }, { merge: true });
     }
 };

@@ -503,78 +503,173 @@ body {
 }
 
 /* =========================================
-   🔥 ROAMING PET FIX (Visible Positions)
-   ========================================= */
-
-/* =========================================
-   🔥 FINAL GUILD FAMILIAR (ROAMING MODE)
+   🔥 GUILD FAMILIAR (PET) — CLEAN MERGED VERSION
    ========================================= */
 
 .familiar-wrapper {
     position: fixed;
     z-index: 5000;
-    
-    /* Size adjustment */
-    width: 180px;
-    height: 180px;
-    
-    /* Smooth Animation */
-    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    
-    /* Default State: Invisible */
-    opacity: 0; 
-    pointer-events: none; /* Click-through allowed */
+    width: 160px;
+    height: 160px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Jab JS 'visible' class add karega, tab dikhega */
+/* Visible state from JS */
 .familiar-wrapper.visible {
     opacity: 1;
 }
 
-/* --- IMAGE STYLE --- */
+/* Image container (clickable) */
+.pet-image-box {
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: transform 0.5s ease;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.6));
+}
+
 .pet-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 -5px 10px rgba(255, 215, 0, 0.2)); /* Gold Glow */
-    pointer-events: auto; /* Sirf image par click kaam kare */
-    cursor: pointer;
 }
 
-/* --- 📍 POSITION 1: BOTTOM RIGHT --- */
+/* =========================================
+   📍 POSITIONS (Wrapper straight, image rotates)
+   ========================================= */
+
+/* Bottom Right */
 .pos-bottom-right {
-    bottom: -60px;  /* Sir dikhega */
-    right: 30px;
-    transform: rotate(0deg);
+    bottom: -55px;
+    right: 25px;
 }
-.pos-bottom-right:hover { bottom: -20px; transform: scale(1.05); }
+.pos-bottom-right:hover { bottom: -15px; }
 
-/* --- 📍 POSITION 2: BOTTOM LEFT --- */
+/* Bottom Left */
 .pos-bottom-left {
-    bottom: -60px;
-    left: 30px;
-    transform: rotate(0deg);
+    bottom: -55px;
+    left: 25px;
 }
-.pos-bottom-left:hover { bottom: -20px; transform: scale(1.05); }
+.pos-bottom-left:hover { bottom: -15px; }
 
-/* --- 📍 POSITION 3: SIDE RIGHT --- */
+/* Side Right */
 .pos-side-right {
     top: 50%;
-    right: -60px; 
-    transform: translateY(-50%) rotate(-90deg); /* Wall se jhankega */
+    right: -55px;
+    transform: translateY(-50%);
 }
-.pos-side-right:hover {
-    right: -20px; 
-    transform: translateY(-50%) rotate(-90deg) scale(1.05);
+.pos-side-right:hover { right: -15px; }
+.pos-side-right .pet-image-box {
+    transform: rotate(-90deg);
 }
 
-/* --- 📍 POSITION 4: SIDE LEFT --- */
+/* Side Left */
 .pos-side-left {
     top: 50%;
-    left: -60px; 
-    transform: translateY(-50%) rotate(90deg);
+    left: -55px;
+    transform: translateY(-50%);
 }
-.pos-side-left:hover {
-    left: -20px; 
-    transform: translateY(-50%) rotate(90deg) scale(1.05);
+.pos-side-left:hover { left: -15px; }
+.pos-side-left .pet-image-box {
+    transform: rotate(90deg);
+}
+
+/* =========================================
+   🃏 FAMILIAR STATUS CARD
+   ========================================= */
+
+.familiar-card {
+    position: absolute;
+    width: 260px;
+    background: rgba(12, 12, 12, 0.96);
+    border: 1px solid var(--neon-gold);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+    backdrop-filter: blur(6px);
+
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+
+    pointer-events: auto;
+    z-index: 6000;
+}
+
+/* Show card */
+.familiar-card:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+/* Header */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    font-family: 'Orbitron';
+    color: var(--neon-gold);
+    font-size: 0.9rem;
+}
+
+.online-dot {
+    width: 8px;
+    height: 8px;
+    background: #00ff00;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #00ff00;
+    animation: blink 1.5s infinite;
+}
+
+.card-body {
+    font-family: 'Rajdhani';
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
+.activity-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mood-badge {
+    background: rgba(0,234,255,0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* Card smart positioning */
+.pos-bottom-right .familiar-card,
+.pos-bottom-left .familiar-card {
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.pos-side-right .familiar-card {
+    right: 115%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.pos-side-left .familiar-card {
+    left: 115%;
+    top: 50%;
+    transform: translateY(-50%);
 }
