@@ -1,7 +1,5 @@
 // js/game-map.js
 
-// 🛑 FIX 1: Import line hatayi hai taaki "SyntaxError" na aaye.
-// Hum mankar chal rahe hain ki 'hunter-db.js' HTML me pehle load ho chuka hai.
 const syncXPToCloud = window.syncXPToCloud || function(xp) { 
     console.log("⚠️ Cloud Sync Skipped (Function not loaded)"); 
 };
@@ -622,37 +620,28 @@ window.downloadRoadmap = async function () {
 };
 
 
+// ✅ ISSE RAKHO (Ye Sahi hai)
+// ============================================
+// 🔄 UPDATED: ACADEMIC SYSTEM OPENER
+// ============================================
 
-// =============================================================
-// 🔥 7. ACADEMIC SYSTEM CONNECTION (NEW)
-// =============================================================
-
-window.openAcademicSystem = function() {
-    
+window.openAcademicSystem = async function() {
+    const savedBlueprint = localStorage.getItem('hunter_blueprint'); // Defined here!
 
     if (savedBlueprint) {
-        // ✅ Plan exists -> Enter Dashboard
-        console.log("System: Academic Blueprint found. Accessing Dashboard...");
-        
-        // Optional: Play Sound
-        if(window.audioSys && window.audioSys.play) window.audioSys.play('click');
-
-        // Transition Effect
+        console.log("System: Access Granted.");
         document.body.style.transition = "opacity 0.5s";
         document.body.style.opacity = "0";
-        
-        setTimeout(() => {
-            window.location.href = 'study-dashboard.html';
-        }, 500);
-
+        setTimeout(() => window.location.href = 'study-dashboard.html', 500);
     } else {
-        // ❌ No Plan -> Redirect to Architect
-        if(confirm("⚠ SYSTEM ALERT: No Academic Blueprint detected.\n\nInitialize 'The Architect' to create your semester strategy?")) {
-            window.location.href = 'study-os.html';
-        }
+        // ... Confirmation Logic ...
+        const userChoice = await showSystemConfirm(
+            "BLUEPRINT NOT FOUND", 
+            "The Architect requires a semester strategy to proceed."
+        );
+        if (userChoice === true) window.location.href = 'study-os.html';
     }
 };
-
 // ============================================
 // 🔥 CUSTOM SYSTEM CONFIRMATION (NO MORE BORING ALERTS)
 // ============================================

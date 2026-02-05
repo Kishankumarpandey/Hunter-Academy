@@ -16,6 +16,8 @@ console.log(`📡 System Connected to: ${API_BASE_URL}`);
 let player;
 let timingsCalculated = false; 
 let checkInterval;
+let quizTimestamps = []; // 🔥 FIX: Ye missing tha
+let lastQuizTime = 0;    // 🔥 FIX: Ye bhi missing tha
 
 function destroyYouTubePlayer() {
     try {
@@ -164,7 +166,7 @@ window.initDungeon = async function() {
     try {
         const payload = isManual ? { transcriptText: text } : { videoUrl: url };
 
-        // Server Request for QUIZ generation
+        // Server Request
         const res = await fetch(`${API_BASE_URL}/generate-dungeon`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -182,7 +184,7 @@ window.initDungeon = async function() {
         quizData = data.questions || [];
         summaryData = data.summary || [];
 
-        // Check if Quiz Data exists
+        // Check Quiz Data
         if (quizData.length === 0) {
             console.warn("⚠️ No Quiz Questions generated.");
             alert("System Message: AI could not generate questions. Using Video Only Mode.");
@@ -198,30 +200,26 @@ window.initDungeon = async function() {
             }
         }
 
-        // ... initDungeon function ke andar ...
+        // 🔥 VIDEO LOAD LOGIC
+        const videoId = extractVideoID(url);
+        loadVideo(videoId);
 
-    const videoId = extractVideoID(url);
-    loadVideo(videoId);
-
-    // 🔥 FIX 404 IMAGES: (Ye code missing tha, isse add karo)
-    setTimeout(() => {
-        const allImages = document.querySelectorAll('img');
-        allImages.forEach(img => {
-            img.onerror = function() {
-                this.style.display = 'none'; // Broken image chupao
-                // Fallback Card dikhao
-                const fallbackDiv = document.createElement('div');
-                fallbackDiv.innerHTML = `
-                    <div style="border:1px dashed red; padding:10px; text-align:center; margin:10px 0;">
-                        <i class="fas fa-exclamation-triangle" style="color:red;"></i>
-                        <div style="font-size:0.8rem; color:#aaa;">DIAGRAM MISSING</div>
-                    </div>`;
-                this.parentNode.insertBefore(fallbackDiv, this);
-            };
-        });
-    }, 3000);
-
-// ...
+        // 🔥 FIX 404 IMAGES
+        setTimeout(() => {
+            const allImages = document.querySelectorAll('img');
+            allImages.forEach(img => {
+                img.onerror = function() {
+                    this.style.display = 'none'; 
+                    const fallbackDiv = document.createElement('div');
+                    fallbackDiv.innerHTML = `
+                        <div style="border:1px dashed red; padding:10px; text-align:center; margin:10px 0;">
+                            <i class="fas fa-exclamation-triangle" style="color:red;"></i>
+                            <div style="font-size:0.8rem; color:#aaa;">DIAGRAM MISSING</div>
+                        </div>`;
+                    this.parentNode.insertBefore(fallbackDiv, this);
+                };
+            });
+        }, 3000);
 
     } catch (err) {
         console.error(err);
@@ -336,26 +334,6 @@ function calculateQuizTimings() {
     console.log("🎯 FINAL TIMINGS:", quizTimestamps.map(t => `${Math.floor(t / 60)}m ${t % 60}s`));
 }
 
-function checkTime() {
-    if (isQuizActive) return;
-    if (!isQuizSystemOnline) return;
-
-    if(player && player.getCurrentTime) {
-        const currentTime = player.getCurrentTime();
-
-        // 🔥 DOUBLE SAFETY: Video ke pehle 10 second me kuch mat karo
-        if (currentTime < 10) return; 
-
-        if (quizData.length > 0 && 
-            currentQIndex < quizTimestamps.length && 
-            currentTime >= quizTimestamps[currentQIndex]) {
-
-            console.log(`⚡ Triggering Quiz #${currentQIndex + 1} at ${Math.floor(currentTime)}s`);
-            triggerQuiz(quizData[currentQIndex]);
-        }
-    }
-}
-
 function unlockDungeonCompletion() {
     if (isDungeonCleared) return;
 
@@ -369,7 +347,6 @@ function unlockDungeonCompletion() {
     }
 }
 
-let lastQuizTime = 0; // 🔥 Global variable add karna mat bhulna (top of file pe)
 
 function checkTime() {
     if (isQuizActive) return;
