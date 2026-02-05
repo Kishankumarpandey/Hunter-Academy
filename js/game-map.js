@@ -108,7 +108,7 @@ async function enterGate() {
 
     try {
         console.log("📡 Contacting Server...");
-        const res = await fetch('http://localhost:3001/generate-dungeon', {
+        const res = await fetch(`${API_BASE_URL}/generate-dungeon`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ videoUrl: url })
@@ -493,7 +493,7 @@ async function fetchRoadmap(savedRole = null) {
     if(loading) loading.classList.remove('hidden');
     
     try {
-        const res = await fetch('http://localhost:3001/generate-roadmap', {
+        const res = await fetch(`${API_BASE_URL}/generate-roadmap`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: role })
         });
         const data = await res.json();

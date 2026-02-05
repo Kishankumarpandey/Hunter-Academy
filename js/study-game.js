@@ -2,8 +2,15 @@
 if (performance.navigation.type !== 1) {
     // window.location.reload(true);
 }
+// =============================================================
+// 🔥 SMART CONFIG: LOCALHOST vs RENDER (AUTO SWITCH)
+// =============================================================
 
-const API_BASE_URL = 'http://localhost:3001'; 
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3001'                          // 🏠 Jab khud ke PC par ho
+    : 'https://hunter-academy-1.onrender.com';         // ☁️ Jab Internet par (Render) par ho
+
+console.log(`📡 System Connected to: ${API_BASE_URL}`);
 
 // --- STATE VARIABLES ---
 let player;
