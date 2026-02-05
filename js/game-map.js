@@ -5,7 +5,17 @@
 const syncXPToCloud = window.syncXPToCloud || function(xp) { 
     console.log("⚠️ Cloud Sync Skipped (Function not loaded)"); 
 };
+// =============================================================
+// 🔥 SERVER CONFIG (Sabse upar paste karein)
+// =============================================================
 
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3001'                          // 🏠 Local Mode
+    : 'https://hunter-academy-1.onrender.com';         // ☁️ Render Mode
+
+console.log(`📡 Page Connected to: ${API_BASE_URL}`);
+
+// ... Iske neeche baaki code shuru hoga ...
 // =============================================================
 // 🔥 1. INITIALIZATION & LOAD
 // =============================================================
