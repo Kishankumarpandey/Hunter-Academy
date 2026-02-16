@@ -1,3 +1,9 @@
+// =============================================================
+// 🔥 IMPORT MOTIVATION VAULT (NEW ADDITION)
+// =============================================================
+// Ensure motivation-vault.js exists in js/ folder
+import { REWARD_VAULT } from './motivation-vault.js';
+
 // FORCE CLEAN LOAD
 if (performance.navigation.type !== 1) {
     // window.location.reload(true);
@@ -12,12 +18,15 @@ const API_BASE_URL = (window.location.hostname === 'localhost' || window.locatio
 
 console.log(`📡 System Connected to: ${API_BASE_URL}`);
 
+// Global Audio Helper (Safety Check)
+const audioSys = window.audioSys || { play: () => {}, startBGM: () => {}, sounds: { bgm: { pause: () => {}, play: () => {} } } };
+
 // --- STATE VARIABLES ---
 let player;
 let timingsCalculated = false; 
 let checkInterval;
-let quizTimestamps = []; // 🔥 FIX: Ye missing tha
-let lastQuizTime = 0;    // 🔥 FIX: Ye bhi missing tha
+let quizTimestamps = []; 
+let lastQuizTime = 0;    
 
 function destroyYouTubePlayer() {
     try {
@@ -67,7 +76,7 @@ window.addEventListener('load', function() {
         if (urlInput) {
             urlInput.value = savedUrl;
             setTimeout(() => {
-                if (typeof scanGateKey === 'function') scanGateKey();
+                if (typeof window.scanGateKey === 'function') window.scanGateKey();
             }, 500);
         }
     }
@@ -506,7 +515,7 @@ window.extractNotes = async function() {
                     ${formatAIContent(data.summary)}
                 </p>
                 
-                <button id="audio-btn" onclick="toggleNoteAudio('${fullAudioText}')" 
+                <button id="audio-btn" onclick="toggleNoteAudio('${fullAudioText.replace(/'/g, "\\'")}')" 
                     style="background:var(--neon-purple); border:none; color:white; padding:8px 15px; border-radius:20px; cursor:pointer; font-size:0.75rem; white-space:nowrap; display:flex; align-items:center; gap:5px; box-shadow: 0 0 10px rgba(189, 0, 255, 0.3);">
                     <i class="fas fa-headphones"></i> LISTEN
                 </button>
@@ -728,15 +737,42 @@ window.scanGateKey = async function() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(async () => {
         try {
-            const res = await fetch(`https://noembed.com/embed?url=${url}`);
-            const data = await res.json();
-            if (data.error) throw new Error("Invalid Key");
+            // Try noembed first
+            let data = null;
+            try {
+                const res = await fetch(`https://noembed.com/embed?url=${url}`);
+                data = await res.json();
+            } catch (e) {
+                data = null;
+            }
+
+            // Fallback to YouTube oEmbed if needed
+            if (!data || data.error) {
+                try {
+                    const res2 = await fetch('https://www.youtube.com/oembed?url=' + encodeURIComponent(url) + '&format=json');
+                    data = await res2.json();
+                } catch (e) {
+                    data = null;
+                }
+            }
+
+            // If still no metadata, build a basic preview from video id
+            if (!data || data.error) {
+                const vid = extractVideoID(url);
+                if (!vid) throw new Error('Invalid Key');
+
+                data = {
+                    thumbnail_url: `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`,
+                    title: await getVideoTitle(url).catch(() => 'Unknown Dungeon'),
+                    author_name: 'Unknown'
+                };
+            }
 
             statusDiv.classList.add('hidden');
             previewDiv.classList.remove('hidden');
-            document.getElementById('prev-img').src = data.thumbnail_url;
-            document.getElementById('prev-title').innerText = data.title;
-            document.getElementById('prev-channel').innerText = "AUTHOR: " + data.author_name.toUpperCase();
+            document.getElementById('prev-img').src = data.thumbnail_url || '';
+            document.getElementById('prev-title').innerText = data.title || 'Unknown Dungeon';
+            document.getElementById('prev-channel').innerText = "AUTHOR: " + (data.author_name ? String(data.author_name).toUpperCase() : 'UNKNOWN');
 
             if (btn) {
                 btn.classList.remove('disabled');
@@ -754,7 +790,7 @@ window.pasteFromClipboard = async function() {
     try {
         const text = await navigator.clipboard.readText();
         document.getElementById('yt-url').value = text;
-        scanGateKey();
+        window.scanGateKey();
     } catch (err) {
         alert("Permission denied!");
     }
@@ -795,13 +831,8 @@ window.toggleQuizSystem = function() {
 }
 
 // =============================================================
-// 🔥 DYNAMIC REWARD SYSTEM 🔥
+// 🔥 DYNAMIC REWARD SYSTEM (UPDATED TO USE VAULT)
 // =============================================================
-
-const REWARD_DATABASE = {
-    'kings': [ 'assets/videos/kings_1.mp4', 'assets/videos/kings_2.mp4', 'assets/videos/kings_3.mp4' , 'assets/videos/kings_4.mp4 ', 'assets/videos/kings_5.mp4' , 'assets/videos/kings_6.mp4' ],
-    'recovery': [ 'assets/videos/recovery_1.mp4', 'assets/videos/recovery_2.mp4', 'assets/videos/recovery_3.mp4' , 'assets/videos/recovery_4.mp4' ]
-};
 
 window.claimReward = function() {
     const giftOverlay = document.getElementById('gift-overlay');
@@ -811,25 +842,49 @@ window.claimReward = function() {
     sessionXP += 50;
     console.log(`System: +50 XP Added to Buffer (Total: ${sessionXP})`);
 
+    // 1. User Preference Check
     const userPref = localStorage.getItem('hunterRewardType') || 'kings';
-    const videoList = REWARD_DATABASE[userPref] || REWARD_DATABASE['kings'];
+    
+    // 2. Fetch from VAULT (Safe Fallback)
+    let videoList = [];
+    if (typeof REWARD_VAULT !== 'undefined' && REWARD_VAULT[userPref]) {
+        videoList = REWARD_VAULT[userPref];
+    } else if (typeof REWARD_VAULT !== 'undefined' && REWARD_VAULT['kings']) {
+        videoList = REWARD_VAULT['kings'];
+    } else {
+        // Absolute Fallback if vault fails import
+        videoList = ['assets/videos/kings_1.mp4', 'assets/videos/kings_2.mp4']; 
+        console.warn("Vault missing, using fallback.");
+    }
+
+    if (videoList.length === 0) {
+        alert("Reward unavailable. Continuing...");
+        window.resumeVideo();
+        return;
+    }
+
+    // 3. Random Select
     const randomIndex = Math.floor(Math.random() * videoList.length);
     const selectedVideo = videoList[randomIndex];
 
+    console.log("PLAYING REWARD:", selectedVideo);
+
+    // 4. Play Logic
     const videoEl = document.getElementById('reward-video');
-    const sourceEl = videoEl.querySelector('source');
+    
+    // Direct Source Set (Safer than querySelector for source)
+    videoEl.src = selectedVideo;
 
-    if (sourceEl) sourceEl.src = selectedVideo;
-    else videoEl.src = selectedVideo;
-
-    videoEl.load();
     const rewardOverlay = document.getElementById('reward-overlay');
     rewardOverlay.classList.remove('hidden');
     rewardOverlay.style.display = 'block';
 
+    videoEl.load(); // Refresh video source
+    
     if (window.audioSys && window.audioSys.sounds.bgm) audioSys.sounds.bgm.pause();
+    
     videoEl.play().catch(e => console.log("Audio permission needed:", e));
-    videoEl.onended = function() { closeReward(); };
+    videoEl.onended = function() { window.closeReward(); };
 }
 
 window.closeReward = function() {
@@ -842,8 +897,9 @@ window.closeReward = function() {
     rewardOverlay.style.display = 'none';
     document.getElementById('gift-overlay').style.display = 'none';
 
-    resumeVideo();
+    window.resumeVideo();
 }
+
 // 🔥 FINISH DUNGEON (COMMIT SESSION XP)
 window.finishDungeon = function() {
     if (!isDungeonCleared) {
@@ -879,7 +935,7 @@ window.finishDungeon = function() {
     } else {
         console.log("⚠️ Database not connected. XP saved locally only.");
     }
-   
+    
 
     document.getElementById('final-accuracy').innerText = accuracy + "%";
     document.getElementById('final-xp').innerText = "+" + totalEarned + " XP";
@@ -912,7 +968,7 @@ window.joinFriendGuild = function() {
 
 // 2. Go Back Function
 window.goBackFromGuild = function() {
-    closeModal('guild-modal');
+    window.closeModal('guild-modal');
 }
 
 // --- HELPER: CLOSE MODAL ---
@@ -983,7 +1039,7 @@ window.activateRuneMode = async function(retryCount = 0) { // Step 1: Add retry 
                 console.warn(`⚠️ Attempt ${retryCount + 1}: Retrieved banned game. Rerolling...`);
                 
                 // Recursive call with incremented counter
-                return activateRuneMode(retryCount + 1); 
+                return window.activateRuneMode(retryCount + 1); 
             }
         }
 
@@ -997,7 +1053,7 @@ window.activateRuneMode = async function(retryCount = 0) { // Step 1: Add retry 
                 if (gameData.url.includes("game-lab.html")) {
                     window.location.href = gameData.url;
                 } else {
-                    showGameLaunchModal(gameData);
+                    window.showGameLaunchModal(gameData);
                 }
             }
             // CASE B: Internal Game
@@ -1034,7 +1090,7 @@ window.activateRuneMode = async function(retryCount = 0) { // Step 1: Add retry 
 // 🔥 UPDATED: GAME LAUNCHER WITH REROLL SYSTEM
 // =============================================================
 
-function showGameLaunchModal(gameData) {
+window.showGameLaunchModal = function(gameData) {
     // 1. Cleanup Old Modal
     const oldModal = document.getElementById('custom-launch-modal');
     if(oldModal) oldModal.remove();
@@ -1126,6 +1182,6 @@ window.handleRejection = function(gameUrl, reason) {
     if(btn) btn.innerHTML = `<i class="fas fa-cog fa-spin"></i> ADAPTING...`;
 
     setTimeout(() => {
-        activateRuneMode(); // Call the main function again to fetch a NEW game
+        window.activateRuneMode(); // Call the main function again to fetch a NEW game
     }, 1000);
 }
